@@ -1,0 +1,339 @@
+/* Presentation editor and player */
+.powerpoint{
+ --ppt-surface:#211c22;--ppt-raised:#2c2329;--ppt-line:#523e48;
+ --ppt-muted:#cab8bd;--ppt-accent:#ffc2a5;--ppt-ink:#f9eeeb;
+ background:#19161d;color:var(--ppt-ink);
+}
+.powerpoint .office-top{background:#38232a;border-bottom:1px solid var(--ppt-line)}
+.powerpoint .office-top input{background:#251b24;border-color:#523943}
+.powerpoint .office-top .office-file[open]>div{
+ width:min(250px,90vw);max-height:max(80px,calc(var(--ppt-height,100dvh) - 65px));
+ overflow:auto;overscroll-behavior:contain;background:#30232b;
+}
+.powerpoint .office-top .office-file>summary{background:#2c222a;border-color:#68505a}
+.powerpoint .office-status{
+ flex:none;min-height:19px;background:#251d25;color:var(--ppt-muted);text-align:center;
+ padding:1px 9px;font-size:11px;line-height:17px;
+}
+.powerpoint .office-workspace{grid-template-columns:132px minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto}
+.powerpoint .ppt-film-row{
+ grid-row:1 / 3;display:flex;min-height:0;flex-direction:column;overflow:hidden;
+ background:#231c24;border-right:1px solid #3e3039;
+}
+.powerpoint .slide-film{flex:1;min-height:0;background:transparent;padding:7px;scrollbar-width:thin}
+.powerpoint .slide-thumbnail{
+ min-width:0;min-height:44px;padding:4px;gap:3px;border:1px solid #513d4b;
+ border-radius:8px;background:#2c242f;color:var(--ppt-ink);
+}
+.powerpoint .slide-thumbnail[aria-pressed="true"]{border-color:var(--ppt-accent);box-shadow:inset 0 0 0 1px var(--ppt-accent);background:#463039}
+.ppt-film-item{
+ position:relative;display:grid;grid-template-columns:minmax(0,1fr) 44px;
+ flex:none;min-width:0;width:100%;gap:2px;
+}
+.powerpoint .ppt-film-item .slide-thumbnail{width:100%;min-width:0}
+.powerpoint .ppt-film-handle{
+ display:grid;place-items:center;min-width:44px;min-height:44px;padding:0;
+ touch-action:none;user-select:none;cursor:grab;background:#372830;border-color:#614853;color:#f6cdba;
+}
+.powerpoint .ppt-film-handle::before{
+ content:'';width:14px;height:20px;background:radial-gradient(circle,currentColor 1.3px,transparent 1.6px) 0 0 / 7px 6.5px;
+}
+.powerpoint .ppt-film-handle:disabled{opacity:.33;cursor:default}
+.slide-film.is-reordering .ppt-film-handle{cursor:grabbing}
+.ppt-film-item.is-reorder-source{opacity:.48}
+.ppt-film-item[data-reorder-edge]::after{
+ content:'';position:absolute;z-index:2;pointer-events:none;inset-inline:0;
+ height:3px;border-radius:3px;background:#ffad88;box-shadow:0 0 6px #e9815d;
+}
+.ppt-film-item[data-reorder-edge="before"]::after{top:-4px}
+.ppt-film-item[data-reorder-edge="after"]::after{bottom:-4px}
+.ppt-film-status{position:absolute;width:1px;height:1px;padding:0;clip-path:inset(50%);overflow:hidden;white-space:nowrap}
+.powerpoint .ppt-film-drag-preview{
+ z-index:80;pointer-events:none;border:1px solid var(--ppt-accent);border-radius:8px;
+ background:#382731;box-shadow:0 8px 22px #0009;opacity:.95;
+}
+.powerpoint .ppt-film-drag-preview .slide-thumbnail{width:100%;min-width:0;border-color:transparent}
+.powerpoint .ppt-thumbnail-stage,.powerpoint .ppt-layout-preview,.powerpoint .ppt-shape-preview{
+ display:block;width:100%;min-height:0;border-radius:3px;box-shadow:none;pointer-events:none;
+}
+.ppt-thumbnail-caption{
+ width:100%;min-width:0;display:flex;align-items:center;gap:4px;text-align:left;
+ line-height:1.2;font-size:10px;
+}
+.ppt-thumbnail-caption>span{color:var(--ppt-accent);font-weight:750}
+.ppt-thumbnail-caption small{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#eddae2}
+.powerpoint .ppt-new-slide{
+ flex:none;min-width:44px;min-height:44px;padding:4px;
+ background:#49313a;border-color:#73515e;color:var(--ppt-accent);font-size:24px;
+}
+.powerpoint .ppt-workspace{
+ display:grid;place-items:center;min-width:0;min-height:0;container-type:size;
+ overflow:hidden;padding:12px;background:
+ radial-gradient(ellipse at center,#322832,#1b1820);
+}
+.powerpoint .ppt-editor-canvas{
+ width:100%;width:min(100cqw,calc(100cqh * var(--ppt-ratio,1.7778)));
+ min-width:0;max-width:1100px;touch-action:none;
+}
+.powerpoint .ppt-context{
+ min-width:0;display:flex;align-items:center;gap:5px;
+ padding:3px 8px;background:#2d232a;border-top:1px solid var(--ppt-line);
+}
+.powerpoint .ppt-context button{min-height:44px;padding:4px 9px;font-size:12px;white-space:nowrap}
+.ppt-selected-label{
+ flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+ font-size:12px;color:#eed4d9;
+}
+.powerpoint .slide-selection.is-selected{outline-color:#147dd6;outline-offset:0;z-index:2}
+.powerpoint .slide-resize{
+ right:0;bottom:0;width:34px;height:34px;background:transparent;border:0;
+ display:grid;place-items:end;cursor:nwse-resize;
+}
+.powerpoint .slide-resize::after{
+ content:'';width:11px;height:11px;border:2px solid white;border-radius:4px;
+ background:#147dd6;box-shadow:0 0 0 1px #147dd6;
+}
+.powerpoint .slide-measure{position:absolute;pointer-events:none;z-index:3;background:#d23e9a}
+.powerpoint .slide-measure-x{width:1px;top:0;bottom:0}
+.powerpoint .slide-measure-y{height:1px;left:0;right:0}
+.powerpoint .slide-object-list{line-height:1.15}
+.powerpoint .slide-text-content>div{min-width:0}
+
+.powerpoint .ppt-dock{
+ display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;
+ overflow:visible;max-height:none;border:0;border-top:1px solid #604651;padding:4px 10px;
+ background:#32242e;
+}
+.powerpoint .ppt-dock button{
+ width:100%;min-width:0;min-height:47px;flex-direction:column;gap:1px;
+ padding:3px;color:#f7e6e9;background:transparent;border-color:transparent;font-size:12px;line-height:1.1;
+}
+.powerpoint .ppt-dock button[aria-expanded="true"]{background:#593940;border-color:#8e5f65;color:#ffdfcd}
+.ppt-dock-icon{font-size:20px;line-height:1;color:var(--ppt-accent)}
+.powerpoint .ppt-drawer{
+ display:flex;flex:0 1 auto;flex-direction:column;min-height:0;max-height:var(--ppt-drawer-height,min(430px,48%));
+ background:var(--ppt-surface);border:1px solid #694e59;border-bottom:0;border-radius:14px 14px 0 0;overflow:hidden;
+}
+.powerpoint .ppt-drawer[hidden],.powerpoint .ppt-context[hidden],.powerpoint .ppt-show [hidden],
+.powerpoint .ppt-dialog [hidden]{display:none!important}
+.powerpoint .ppt-drawer-heading,.powerpoint .ppt-dialog-heading{
+ flex:none;display:flex;align-items:center;justify-content:space-between;gap:7px;
+ padding:3px 12px;background:#392a35;border-bottom:1px solid var(--ppt-line);
+}
+.ppt-drawer-heading strong{font-size:15px}
+.powerpoint .ppt-drawer-heading button,.powerpoint .ppt-dialog-heading button{min-width:44px;min-height:44px;padding:4px 8px}
+.powerpoint .ppt-drawer-content{
+ min-height:0;overflow:auto;overscroll-behavior:contain;padding:10px 12px 12px;
+ display:grid;align-content:start;gap:12px;
+}
+.ppt-section{display:grid;gap:7px;min-width:0}
+.ppt-section h3{margin:0;font-size:13px;color:#f0d3d9;letter-spacing:0}
+.ppt-commands,.ppt-field-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(142px,100%),1fr));gap:6px}
+.powerpoint .ppt-commands button,.powerpoint .ppt-drawer-content>button{
+ min-height:44px;font-size:13px;line-height:1.2;padding:6px 8px;
+}
+.powerpoint .ppt-drawer button,.powerpoint .ppt-context button,.powerpoint .ppt-dialog button{
+ border-color:#604859;background:#382d38;color:#f2e6e9;
+}
+.powerpoint .ppt-editor-canvas:focus-visible,.powerpoint button:focus-visible,.powerpoint a:focus-visible{
+ outline:2px solid var(--ppt-accent);outline-offset:-2px;
+}
+.powerpoint .ppt-drawer button[aria-pressed="true"]{background:#67464e;border-color:#bd8c88;color:#fff1e7}
+.powerpoint .ppt-primary{color:#302023!important;background:#ffc2a5!important;border-color:#ffc2a5!important}
+.powerpoint .danger{color:#ffc0bc!important}
+.powerpoint .ppt-field{display:grid;gap:3px;min-width:0;font-size:12px;color:#eedbe4}
+.powerpoint .ppt-field input,.powerpoint .ppt-field select,.powerpoint .ppt-show__count{
+ width:100%;min-width:0;min-height:44px;padding:5px 8px;font-size:16px;
+ background:#221b23;color:#f9eeeb;border:1px solid #6b5465;border-radius:7px;
+}
+.powerpoint .ppt-field input[type=color]{height:44px;padding:5px}
+.ppt-check{display:flex;gap:6px;align-items:center;font-size:13px}
+.powerpoint input[type=checkbox]{width:22px;height:22px;min-height:0;accent-color:#f5b094}
+.ppt-layout-grid,.ppt-shape-grid,.ppt-theme-grid{display:grid;gap:6px;grid-template-columns:repeat(auto-fit,minmax(min(100px,100%),1fr))}
+.ppt-shape-grid{grid-template-columns:repeat(auto-fit,minmax(min(85px,100%),1fr))}
+.powerpoint .ppt-layout-card,.powerpoint .ppt-theme{
+ min-width:0;display:flex;flex-direction:column;gap:5px;min-height:44px;
+ padding:5px 5px 6px;text-align:center;font-size:12px;line-height:1.2;
+}
+.ppt-theme-sample{
+ width:100%;height:41px;display:flex;align-items:center;justify-content:center;
+ border-bottom:5px solid var(--ppt-theme-accent);border-radius:3px;font-size:19px;font-weight:700;
+}
+.ppt-layers{display:grid;gap:5px;list-style:none;margin:0;padding:0}
+.ppt-layers li{display:flex;align-items:center;gap:10px}
+.ppt-layers li>button{flex:1;min-height:44px;min-width:0;text-align:left;justify-content:flex-start;font-size:13px}
+.ppt-layers input{margin:0 8px}
+.ppt-animation-list{display:grid;gap:5px;list-style:none;margin:0;padding:0}
+.ppt-animation-list li{display:grid;grid-template-columns:20px minmax(0,1fr) 44px 44px;gap:4px;align-items:center}
+.ppt-animation-position{color:var(--ppt-accent);font-size:12px;text-align:center}
+.powerpoint .ppt-animation-list button{min-width:0;min-height:44px;padding:5px 4px;font-size:13px;line-height:1.15}
+.ppt-animation-list li>button:first-of-type{justify-content:flex-start;text-align:left;overflow-wrap:anywhere}
+.powerpoint .ppt-context [data-ppt-animate][aria-expanded="true"]{background:#593940;border-color:#bd8c88;color:#fff1e7}
+
+.powerpoint .ppt-dialog[open]{
+ display:flex;flex-direction:column;overflow:hidden;padding:0;max-height:min(650px,calc(var(--ppt-height,100dvh) - 16px));
+ border:1px solid #785c68;background:#2b212c;
+}
+.powerpoint .ppt-dialog-heading h2{margin:0;font-size:17px}
+.powerpoint .ppt-dialog form{display:flex;flex-direction:column;min-height:0}
+.powerpoint .ppt-dialog-content{overflow:auto;overscroll-behavior:contain;padding:12px;min-height:0}
+.powerpoint .ppt-dialog textarea{
+ min-height:95px;height:auto;max-height:35dvh;resize:vertical;
+ margin:0;background:#1d181f;border-color:#755a6a;color:#ffeff7;font-size:16px;
+}
+.powerpoint .ppt-dialog-actions{
+ flex:none;display:grid;grid-template-columns:1fr 1fr;gap:7px;
+ padding:8px 12px;border-top:1px solid var(--ppt-line);
+}
+.powerpoint .ppt-dialog-actions button{min-height:44px;font-size:14px;padding:5px 8px}
+.powerpoint .ppt-dialog-actions button:only-child{grid-column:1/-1}
+.powerpoint .ppt-dialog-content>a{width:100%;overflow-wrap:anywhere;text-align:center}
+.ppt-error{margin:8px 0 0;color:#ffd0c5;font-size:13px}
+.ppt-table-scroll{overflow:auto;margin-top:11px}
+.ppt-table-scroll table{border-collapse:separate;border-spacing:4px}
+.ppt-table-scroll input{width:110px;min-height:44px;padding:5px 7px;font-size:16px}
+.ppt-find-results{display:grid;gap:5px;margin-top:8px}
+.ppt-find-results:empty{display:none}
+.ppt-find-results p{margin:0}
+.ppt-find-results button{min-height:44px;min-width:0;font-size:13px;justify-content:flex-start;text-align:left;overflow-wrap:anywhere}
+.ppt-print-frame{position:fixed;left:-10000px;top:0;width:1px;height:1px;border:0}
+.powerpoint .ppt-import-note{min-height:44px;flex:none;padding:5px 8px;margin:0;border-radius:0;font-size:12px;background:#3b2b30;color:#ffe0ca}
+.powerpoint .ppt-import-note[hidden]{display:none}
+.ppt-import-warnings{margin:0;padding-left:22px;color:var(--ppt-ink)}
+
+.powerpoint .ppt-show{
+ position:fixed;inset:0;width:100vw;height:100dvh;max-width:none;max-height:none;
+ margin:0;padding:0;border:0;background:#0e0b11;color:#f8eff9;
+}
+.powerpoint .ppt-show::backdrop{background:#0e0b11}
+.ppt-show__content{
+ width:100%;height:100%;display:flex;flex-direction:column;min-height:0;
+ padding:max(5px,env(safe-area-inset-top)) max(6px,env(safe-area-inset-right))
+ max(5px,env(safe-area-inset-bottom)) max(6px,env(safe-area-inset-left));
+ background:#0e0b11;
+}
+.ppt-show__header,.ppt-show__controls{display:flex;align-items:center;gap:5px;flex:none}
+.ppt-show__header strong{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}
+.ppt-show__controls{justify-content:center;padding-top:4px}
+.powerpoint .ppt-show button{min-height:44px;min-width:44px;padding:4px 8px;font-size:13px}
+.powerpoint .ppt-show__count{max-width:min(260px,45vw)}
+.ppt-show__surface{
+ flex:1;min-height:0;min-width:0;display:grid;place-items:center;container-type:size;overflow:hidden;
+ touch-action:pan-y pinch-zoom;
+}
+.powerpoint .ppt-show__stage{width:100%;width:min(100cqw,calc(100cqh * var(--ppt-ratio,1.7778)));max-width:none;box-shadow:none}
+.ppt-show__notes{
+ flex:none;max-height:min(25%,165px);overflow:auto;padding:5px 10px;background:#2e242e;border:1px solid #473643;
+}
+.ppt-show__notes p{margin:0;color:#ede1eb;font-size:13px;white-space:pre-wrap}
+.ppt-show__surface[data-transition="fade"]>.ppt-show__stage{animation:ppt-fade .28s ease}
+.ppt-show__surface[data-transition="push"]>.ppt-show__stage{animation:ppt-push .26s ease}
+.ppt-show__surface[data-transition="wipe"]>.ppt-show__stage{animation:ppt-wipe .28s ease}
+.ppt-show__surface[data-direction="previous"]{--ppt-direction:-1}
+.ppt-show[data-reduced-motion] .ppt-show__stage{animation:none}
+.ppt-show [data-ppt-entering]{animation-duration:var(--ppt-entrance-duration,500ms);animation-fill-mode:both;animation-timing-function:ease-out}
+.ppt-show [data-ppt-entering="fade"]{animation-name:ppt-enter-fade}
+.ppt-show [data-ppt-entering="fly"]{animation-name:ppt-enter-fly}
+.ppt-show [data-ppt-entering="zoom"]{animation-name:ppt-enter-zoom}
+.ppt-show[data-reduced-motion] [data-ppt-entering]{animation:none}
+@keyframes ppt-fade{from{opacity:0}to{opacity:1}}
+@keyframes ppt-push{from{transform:translateX(calc(var(--ppt-direction,1) * 10%));opacity:.48}to{transform:none;opacity:1}}
+@keyframes ppt-wipe{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0)}}
+@keyframes ppt-enter-fade{from{opacity:0}to{opacity:1}}
+@keyframes ppt-enter-fly{from{translate:0 100cqh}to{translate:none}}
+@keyframes ppt-enter-zoom{from{scale:.25;opacity:0}to{scale:1;opacity:1}}
+
+@media (min-width: 761px) and (pointer: fine), (min-width: 761px) and (pointer: none), (min-width: 1001px){
+ .powerpoint.office-editor{
+  display:grid;
+  grid-template:
+   "title title" auto
+   "ribbon ribbon" auto
+   "workspace inspector" minmax(0,1fr)
+   "status status" auto / minmax(0,1fr) auto;
+ }
+ .powerpoint .office-top{grid-area:title}
+ .powerpoint .office-workspace{
+  grid-area:workspace;grid-template-columns:clamp(124px,13vw,184px) minmax(0,1fr);
+ }
+ .powerpoint .office-status{grid-area:status;text-align:left}
+ .powerpoint .ppt-dock{
+  grid-area:ribbon;display:flex;align-items:center;gap:6px;padding:5px 12px;
+  border-top:0;border-bottom:1px solid var(--ppt-line);background:#29212b;
+ }
+ .powerpoint .ppt-dock button{
+  width:auto;min-width:92px;min-height:38px;flex-direction:row;gap:7px;padding:5px 10px;font-size:13px;
+ }
+ .powerpoint .ppt-drawer{
+  grid-area:inspector;width:clamp(236px,27vw,348px);max-height:none;
+  border:0;border-left:1px solid var(--ppt-line);border-radius:0;
+ }
+ .powerpoint .ppt-drawer-heading button{min-width:36px;min-height:36px}
+ .powerpoint .ppt-drawer-content{padding:10px;gap:14px}
+ .powerpoint .ppt-commands,.powerpoint .ppt-field-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .powerpoint .ppt-drawer-content button{
+  min-width:0;min-height:36px;white-space:normal;overflow-wrap:anywhere;
+ }
+ .powerpoint .ppt-field input,.powerpoint .ppt-field select{min-height:36px;font-size:14px}
+ .powerpoint .ppt-field input[type=color]{height:36px}
+ .powerpoint .ppt-film-item{grid-template-columns:minmax(0,1fr) 28px;gap:3px}
+ .powerpoint .ppt-film-handle{min-width:28px}
+ .powerpoint .ppt-new-slide{min-height:38px;margin:0 7px 7px}
+ .powerpoint .ppt-context button{min-height:34px}
+}
+@media (min-width: 1024px) and (max-width: 1299px){
+ body:has(.practice-instruction-side[open]) .powerpoint .office-workspace{grid-template-columns:108px minmax(0,1fr)}
+ body:has(.practice-instruction-side[open]) .powerpoint .ppt-drawer{width:215px}
+}
+
+@media (max-width: 760px), (max-width: 1000px) and (pointer: coarse){
+ .powerpoint.office-editor{
+  position:fixed;inset:var(--ppt-top,0px) 0 auto;height:var(--ppt-height,100dvh);
+ }
+ .powerpoint .office-top{
+  gap:3px;padding:max(3px,env(safe-area-inset-top)) max(5px,env(safe-area-inset-right))
+  3px max(5px,env(safe-area-inset-left));
+ }
+ .powerpoint .office-top>strong{display:none}
+ .powerpoint .office-top>input{width:0;min-width:42px;max-width:none;min-height:44px;font-size:16px;padding:4px 6px}
+ .powerpoint .office-top>a,.powerpoint .office-top>button,.powerpoint .office-file>summary{
+  min-width:44px;min-height:44px;flex:none;padding:4px 6px;text-align:center;
+ }
+ .powerpoint .office-file>summary{display:grid;place-content:center;font-size:12px}
+ .powerpoint .office-workspace{display:flex;flex-direction:column}
+ .powerpoint .ppt-film-row{
+  flex:none;flex-direction:row;align-items:stretch;max-height:112px;
+  padding:3px max(5px,env(safe-area-inset-right)) 3px max(5px,env(safe-area-inset-left));
+  border:0;border-bottom:1px solid var(--ppt-line);
+ }
+ .powerpoint .slide-film{
+  flex:1;min-width:0;display:flex;flex-direction:row;gap:5px;padding:3px 5px 3px 0;
+  overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;max-height:none;
+ }
+ .powerpoint .slide-thumbnail{width:86px;min-width:86px}
+ .ppt-film-item{width:119px}
+ .ppt-film-item[data-reorder-edge]::after{inset-inline:auto;inset-block:0;width:3px;height:auto}
+ .ppt-film-item[data-reorder-edge="before"]::after{left:-3px}
+ .ppt-film-item[data-reorder-edge="after"]::after{right:-3px}
+ .powerpoint .ppt-new-slide{margin-block:3px}
+ .powerpoint .ppt-workspace{flex:1;padding:9px max(7px,env(safe-area-inset-right)) 9px max(7px,env(safe-area-inset-left))}
+ .powerpoint .ppt-dock{
+  padding:3px max(4px,env(safe-area-inset-right)) max(3px,env(safe-area-inset-bottom)) max(4px,env(safe-area-inset-left));
+ }
+ .powerpoint.ppt-short.ppt-panel-open .ppt-film-row,.powerpoint.ppt-short.ppt-panel-open .ppt-context{
+  display:none;
+ }
+ .powerpoint .ppt-drawer-heading,.powerpoint .ppt-drawer-content{
+  padding-left:max(9px,env(safe-area-inset-left));padding-right:max(9px,env(safe-area-inset-right));
+ }
+ .powerpoint .ppt-dialog[open]{
+  position:fixed;top:calc(var(--ppt-top,0px) + max(4px,env(safe-area-inset-top)));bottom:auto;
+  width:min(560px,calc(100% - max(6px,env(safe-area-inset-left)) - max(6px,env(safe-area-inset-right))));
+  max-height:calc(var(--ppt-height,100dvh) - max(4px,env(safe-area-inset-top)) - max(4px,env(safe-area-inset-bottom)));
+  margin:0 auto;
+ }
+}
+@media (max-height: 480px){
+ .powerpoint .slide-thumbnail{width:69px;min-width:69px}
+}
+@media (prefers-reduced-motion: reduce){.ppt-show .ppt-show__stage,.ppt-show [data-ppt-entering]{animation:none!important}}

@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#141824">
+  <meta name="author" content="dimonhikhik">
+  <meta name="description" content="Редактори й практичні роботи з інформатики українською.">
+  <title>інформатика:офлайн</title>
+  <link rel="icon" href="./public/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./src/styles/main.css">
+</head>
+<body>
+  <a class="skip" href="#main">До вмісту</a>
+  <div class="shell">
+    <header class="sidebar site-header">
+      <div class="site-header-inner">
+        <a href="#catalog" class="brand site-brand" aria-label="Інформатика офлайн, автор dimonhikhik, до каталогу">
+          <img src="./public/icon.svg" alt="" width="40" height="40">
+          <span class="site-brand-copy">
+            <span>інформатика<span class="site-brand-accent">:офлайн</span></span>
+            <small class="site-credit">by dimonhikhik</small>
+          </span>
+        </a>
+        <nav class="site-nav" aria-label="Основна навігація">
+          <a href="#catalog" data-nav="catalog" aria-label="Каталог програм"><span class="site-icon site-icon-apps" aria-hidden="true"></span><span class="site-nav-label">Програми</span></a>
+          <a href="#files" data-nav="files"><span class="site-icon site-icon-folder" aria-hidden="true"></span><span class="site-nav-label">Мої файли</span></a>
+          <a href="#practice" data-nav="practice" aria-label="Практичні роботи"><span class="site-icon site-icon-book" aria-hidden="true"></span><span class="site-nav-label">Практичні</span></a>
+          <a href="#help" data-nav="help"><span class="site-icon site-icon-help" aria-hidden="true">?</span><span class="site-nav-label">Довідка</span></a>
+        </nav>
+        <div class="topbar site-tools">
+          <a class="button connect-link" href="#connect" data-nav="connect" aria-label="QR-код для учнів">
+            <span class="site-icon site-icon-qr" aria-hidden="true"></span><span class="site-tool-label">QR для учнів</span>
+          </a>
+        </div>
+      </div>
+    </header>
+    <div class="content">
+      <p class="site-announcement" data-site-text="site.header" data-custom-site-text hidden></p>
+      <main id="main" tabindex="-1"></main>
+      <footer class="site-footer" data-site-text="site.footer" data-custom-site-text hidden></footer>
+    </div>
+  </div>
+  <div id="notice" role="status" aria-live="polite" hidden></div>
+  <noscript>Для роботи платформи увімкніть JavaScript у браузері.</noscript>
+  <script type="module" src="./src/app/main.js"></script>
+</body>
+</html>
+

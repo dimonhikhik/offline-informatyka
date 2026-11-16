@@ -1,0 +1,18 @@
+# Local content and working files
+/AGENTS.md
+/Промт.txt
+/tmp/
+/node_modules/
+__pycache__/
+.env
+.env.*
+/public/site-content.json
+/public/site-content-*.tmp
+/local-server/site-content.backup.json
+
+# Local classroom copies and supplied artwork
+/public/practice/grade6-table-3-2.pdf
+/public/practice/grade6-table-3-2-page*.png
+/public/practice/grade9-text-2.docx
+/public/practice/grade9-text-3.docx
+/public/images/classroom-menu.png

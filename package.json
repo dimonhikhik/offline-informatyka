@@ -1,0 +1,10 @@
+{
+  "name": "offline-informatyka",
+  "version": "0.5.0",
+  "private": true,
+  "type": "module",
+  "description": "Українська освітня платформа — файлова система",
+  "scripts": { "start": "node local-server/server.mjs", "start:lan": "node local-server/server.mjs --lan" },
+  "engines": { "node": ">=20" }
+}
+

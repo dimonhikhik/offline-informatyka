@@ -1,0 +1,26 @@
+html:not(.catalog-sprite-loaded) :is(.catalog-art,.practice-art-image,.library-art,.admin-task-art-image){
+  display:grid;
+  place-items:center;
+  --catalog-art-aspect:1;
+  background-image:none;
+  background-color:#293953;
+  background-color:color-mix(in srgb,var(--catalog-glyph-color,#a8cef4) 22%,#111b2d);
+  color:var(--catalog-glyph-color,#a8cef4);
+  border-radius:20%;
+  font-family:system-ui,sans-serif;
+  font-weight:750;
+  line-height:1;
+}
+html:not(.catalog-sprite-loaded) :is(.catalog-art,.practice-art-image,.library-art,.admin-task-art-image)::before{
+  content:var(--catalog-glyph,"•");
+}
+html:not(.catalog-sprite-loaded) .catalog-art{
+  width:min(100%,var(--art-height,92px));
+  font-size:clamp(28px,4.6vw,48px);
+}
+html:not(.catalog-sprite-loaded) :is(.catalog-resume-art .catalog-art,.library-art,.admin-task-art-image){
+  font-size:17px;
+}
+html:not(.catalog-sprite-loaded) .practice-art-image{
+  font-size:clamp(18px,3.8vw,36px);
+}

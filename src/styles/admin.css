@@ -1,0 +1,118 @@
+.admin-page{max-width:1200px;margin:auto}
+.admin-page [hidden]{display:none!important}
+.admin-page h1{margin-bottom:16px}
+.admin-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.admin-toolbar button,.admin-toolbar summary{min-height:42px}
+.admin-status{padding:9px 0 7px;margin:0;color:var(--muted);font-size:13px}
+.admin-tasks-layout{min-width:0}
+.admin-tasks-layout.has-wizard{display:grid;grid-template-columns:minmax(248px,306px) minmax(0,1fr);gap:16px;align-items:start}
+.admin-task-sidebar{min-width:0}
+.admin-filters{display:grid;grid-template-columns:minmax(100px,150px) minmax(0,1fr);gap:8px;margin-bottom:12px}
+.admin-filters input,.admin-filters select,.admin-fields input:not([type=checkbox]),.admin-fields select,.admin-fields textarea{
+ width:100%;min-width:0;min-height:44px;padding:8px 10px;border:1px solid var(--line);border-radius:9px;
+ background:#1b2332;color:var(--text);font:inherit;font-size:16px
+}
+.admin-filters input::placeholder,.admin-fields :is(input,textarea)::placeholder{color:var(--muted)}
+.admin-task-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(275px,100%),1fr));gap:9px}
+.admin-tasks-layout.has-wizard .admin-task-list{grid-template-columns:minmax(0,1fr)}
+.admin-task-card{
+ min-width:0;display:grid;grid-template-rows:1fr auto;padding:6px 8px;border:1px solid var(--line);
+ border-radius:12px;background:var(--surface)
+}
+.admin-task-card:has(.admin-task-entry[aria-current="true"]){border-color:#83995e}
+.admin-task-card .admin-task-entry{width:100%;min-width:0;display:block;background:transparent;border:0;color:var(--text);padding:5px;text-align:start}
+.admin-task-card .admin-task-entry:hover{background:#293248}
+.admin-task-entry-content{display:grid;grid-template-columns:42px minmax(0,1fr);gap:9px;align-items:center}
+.admin-task-line{min-width:0;display:grid;gap:3px;overflow-wrap:anywhere}
+.admin-task-line small,.admin-list-empty{color:var(--muted);font-size:12px}
+.admin-task-art{display:grid;place-items:center;width:42px;height:42px;border-radius:9px;background:#252f42}
+.admin-task-art-image{display:block;width:31px;background-image:url('../../public/images/classroom-menu.png');background-repeat:no-repeat}
+.admin-task-meta{display:flex;align-items:center;justify-content:space-between;gap:7px;padding-inline:5px}
+.admin-visibility{font-size:11px;color:#d5eab8;line-height:1.2}
+.admin-visibility.is-hidden{color:#e8ccad}
+.admin-card-menu,.admin-backups{position:relative}
+.admin-card-menu summary,.admin-backups summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.admin-card-menu summary::-webkit-details-marker,.admin-backups summary::-webkit-details-marker{display:none}
+.admin-card-menu summary{min-width:42px;min-height:36px;font-weight:700;font-size:18px;border-radius:8px}
+.admin-card-menu summary:hover,.admin-card-menu[open] summary{background:#293248}
+.admin-backups summary{
+ min-width:66px;padding:6px 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface);font-size:13px;font-weight:650
+}
+.admin-card-actions,.admin-backup-actions{
+ display:none;position:absolute;z-index:8;top:calc(100% + 4px);inset-inline-end:0;width:max-content;max-width:min(265px,85vw);
+ padding:5px;gap:4px;background:#222c3d;border:1px solid #485871;border-radius:9px;box-shadow:0 7px 16px #111a2b80
+}
+.admin-backup-actions{inset-inline-start:0;inset-inline-end:auto}
+.admin-card-menu[open] .admin-card-actions,.admin-backups[open] .admin-backup-actions{display:grid}
+.admin-card-actions button,.admin-backup-actions button{justify-content:flex-start;text-align:start;white-space:normal;min-height:41px}
+.admin-card-actions button.admin-remove{color:#ffbfbb}
+.admin-task-editor{
+ min-width:0;padding:16px;border:1px solid var(--line);border-radius:14px;background:var(--surface);
+ scroll-margin-top:88px
+}
+.admin-wizard-header{display:flex;align-items:center;gap:8px;justify-content:space-between;margin-bottom:10px}
+.admin-wizard-context{margin:0;color:var(--muted);font-size:13px;text-align:end}
+.admin-wizard-header .admin-back{min-height:40px;white-space:nowrap}
+.admin-progress,.admin-steps{list-style:none;padding:0;margin:0}
+.admin-progress{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin-bottom:15px}
+.admin-progress li{min-width:0}
+.admin-progress button{
+ width:100%;min-height:43px;min-width:0;max-width:100%;padding:6px;border-radius:9px;font-size:12px;
+ white-space:normal;overflow-wrap:anywhere;background:#1e2939;color:#e6eefc
+}
+.admin-progress button[data-complete]{border-color:#566782}
+.admin-progress button[aria-current="step"]{background:#314135;border-color:#8aa85f;color:#e6f7cc}
+.admin-progress button:disabled{opacity:.66;cursor:default}
+.admin-progress-label{display:flex;justify-content:center;align-items:center;gap:5px}
+.admin-progress-label b{flex:none;display:grid;place-items:center;width:19px;height:19px;border-radius:50%;background:#10172480;font-size:11px}
+.admin-stage{scroll-margin-top:86px}
+.admin-stage h2{font-size:22px;margin:0 0 12px}
+.admin-stage h2:focus{outline:none}
+.admin-fields{display:grid;gap:11px}
+.admin-fields label{display:grid;gap:5px;min-width:0;font-size:13px;font-weight:600;color:var(--text)}
+.admin-field-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.admin-fields textarea{line-height:1.5;resize:vertical}
+.admin-optional{padding:6px 9px;border:1px solid var(--line);border-radius:9px}
+.admin-optional summary{min-height:38px;cursor:pointer;align-content:center;font-weight:600}
+.admin-optional[open] label,.admin-optional[open] .admin-field-grid{margin-top:6px}
+.admin-steps{display:grid;gap:6px}
+.admin-step{display:grid;grid-template-columns:22px minmax(0,1fr) auto;align-items:start;gap:6px}
+.admin-step-number{padding-top:8px;font-size:13px;font-weight:700;text-align:center;color:#d7efb5}
+.admin-step-tools{display:grid;gap:3px}
+.admin-step-tools button{min-width:42px;min-height:36px;padding:3px}
+.admin-fields>button{justify-self:start}
+.admin-pickers{display:flex;align-items:center;flex-wrap:wrap;gap:7px}
+.admin-material-count,.admin-error{font-size:13px;margin:0;color:var(--muted)}
+.admin-materials{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(154px,100%),1fr));gap:7px}
+.admin-material{min-width:0;border:1px solid var(--line);border-radius:11px;overflow:hidden;background:#1b2332}
+.admin-material-visual{height:112px;display:grid;place-items:center;overflow:hidden;background:#141d2c}
+.admin-material-visual img{width:100%;height:112px;object-fit:contain}
+.admin-file-glyph{font-size:12px;padding:4px 7px;border:1px solid var(--line);border-radius:5px;color:#d6e9fc}
+.admin-material-meta{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px;align-items:center;padding:3px 5px}
+.admin-material-meta span{font-size:12px;overflow-wrap:anywhere}
+.admin-material-meta button{min-width:40px;min-height:36px;padding:2px}
+.admin-fields label.admin-check{min-height:44px;display:flex;align-items:center;gap:8px;font-weight:500;cursor:pointer}
+.admin-check input{min-width:20px;width:20px;min-height:20px;height:20px;accent-color:#a6d96f;flex:none}
+.admin-recap{display:grid;grid-template-columns:42px minmax(0,1fr);gap:10px;align-items:start;padding:10px;border:1px solid var(--line);border-radius:10px}
+.admin-recap strong{overflow-wrap:anywhere}
+.admin-recap p{margin:3px 0 0;color:var(--muted);font-size:13px}
+.admin-error:not(:empty){margin:12px 0 0;color:#ffbbb5}
+.admin-stage-actions{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:14px;padding-top:11px;border-top:1px solid var(--line)}
+.admin-stage-actions .primary{margin-inline-start:auto}
+.admin-preview .admin-preview-bar{position:sticky;top:0;z-index:1;display:flex;justify-content:flex-end;padding:3px;background:inherit}
+@media(max-width:800px){
+ .admin-tasks-layout.has-wizard{display:block}
+ .admin-tasks-layout.has-wizard .admin-task-sidebar{display:none}
+ .admin-task-editor{scroll-margin-top:18px}
+ .admin-stage{scroll-margin-top:12px}
+}
+@media(max-width:500px){
+ .admin-task-editor{padding:10px}
+ .admin-progress-label{flex-direction:column;gap:3px}
+ .admin-progress button{padding-inline:3px;font-size:11px;min-height:49px}
+ .admin-progress{gap:4px}
+ .admin-step{grid-template-columns:17px minmax(0,1fr) auto;gap:4px}
+ .admin-step button,.admin-material-meta button,.admin-card-menu summary{min-width:44px;min-height:44px}
+ .admin-field-grid{grid-template-columns:minmax(0,1fr)}
+ .admin-stage-actions button{padding-inline:9px}
+}

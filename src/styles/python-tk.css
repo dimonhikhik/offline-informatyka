@@ -1,0 +1,169 @@
+.python-tk-view {
+  position: relative;
+  min-width: 0;
+  color: #263146;
+}
+.python-tk-windows {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+.python-tk-widget {
+  min-width: 0;
+  max-width: 100%;
+  border-color: #a0afc6;
+}
+.python-tk-widget :is(button,input,textarea,select) {
+  max-width: 100%;
+  color: inherit;
+  font: inherit;
+}
+.python-tk-window {
+  overflow: auto;
+  width: 100%;
+  border: 1px solid #aebcd1;
+  border-radius: 11px;
+  background: #f1f4f8;
+}
+.python-tk-titlebar {
+  position: sticky;
+  z-index: 1;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 44px;
+  padding-inline: 11px 4px;
+  border-bottom: 1px solid #c4cedc;
+  background: #e0e7f2;
+}
+.python-tk-title {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 14px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.python-tk-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  min-width: 0;
+}
+.python-tk-window>.python-tk-content {
+  padding: 10px;
+}
+.python-tk-content.python-tk-grid {
+  display: grid;
+  align-content: start;
+}
+.python-tk-pack-column,.python-tk-pack-side {
+  display: flex;
+  min-width: 0;
+}
+.python-tk-pack-column { flex-direction: column; }
+.python-tk-pack-middle {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 4px;
+}
+.python-tk-pack-side {
+  flex-direction: row;
+  align-items: stretch;
+}
+.python-tk-pack-side.python-tk-pack-right {
+  flex-direction: row-reverse;
+}
+.python-tk-view :is(.python-tk-button button,.python-tk-close,.python-tk-message button) {
+  color: inherit;
+  min-height: 44px;
+  padding: 4px 9px;
+  border: 1px solid #a0adbe;
+  border-radius: 6px;
+  background: #f8fafd;
+}
+.python-tk-view :is(.python-tk-button button,.python-tk-close,.python-tk-message button):hover {
+  border-color: #879bb3;
+  background: #dfeafb;
+}
+.python-tk-view .python-tk-titlebar .python-tk-close {
+  min-width: 44px;
+  padding: 0;
+  border-color: transparent;
+  background: transparent;
+  font-size: 22px;
+}
+.python-tk-button button { width: 100%; }
+.python-tk-label-text {
+  display: block;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.python-tk-widget :is(input:not([type=checkbox],[type=radio],[type=range]),textarea,select) {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid #aab9ca;
+  border-radius: 6px;
+  padding: 5px 8px;
+  background: #fff;
+  font-size: max(16px,1em);
+}
+.python-tk-widget :is(input,textarea,button):disabled { opacity: .55; }
+.python-tk-widget :is(input,textarea,button,select,svg):focus-visible {
+  outline: 2px solid #2b69b1;
+  outline-offset: 2px;
+}
+.python-tk-widget :is(label,button) { -webkit-tap-highlight-color: transparent; }
+.python-tk-widget label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding-inline: 4px;
+}
+.python-tk-widget input:is([type=radio],[type=checkbox]) {
+  width: 22px;
+  min-height: 22px;
+  accent-color: #3977bf;
+}
+.python-tk-widget :is(input[type=range],progress) { width: 100%; }
+.python-tk-label-frame fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 7px;
+  border: 1px solid #acb9cb;
+}
+.python-tk-label-frame legend { padding-inline: 4px; }
+.python-tk-canvas svg {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  min-height: 48px;
+  overflow: hidden;
+  background: #fff;
+  touch-action: none;
+}
+.python-tk-message {
+  position: relative;
+  margin-top: 9px;
+  padding: 12px;
+  border: 1px solid #9babbe;
+  border-radius: 9px;
+  background: #f2f6fb;
+  color: #24324a;
+}
+.python-tk-message p {
+  margin: 6px 0 9px;
+  color: inherit;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.python-tk-message-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}

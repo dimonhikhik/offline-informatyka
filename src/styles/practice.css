@@ -1,0 +1,438 @@
+.practice-page {
+  --practice-accent: var(--green, #d5f879);
+  --practice-panel: var(--surface, #1b2130);
+  --practice-border: var(--line, #30384d);
+  display: grid;
+  gap: clamp(14px, 2vw, 24px);
+}
+
+.practice-head {
+  display: grid;
+  gap: 2px;
+  justify-items: start;
+}
+
+.practice-page h1 {
+  margin: 0;
+  font-size: clamp(29px, 4vw, 44px);
+  line-height: 1.12;
+  overflow-wrap: anywhere;
+}
+
+.practice-description {
+  max-width: 62ch;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.practice-back {
+  display: inline-flex;
+  width: max-content;
+  min-height: 44px;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.practice-back:hover {
+  color: var(--practice-accent);
+}
+
+.practice-grade-grid,
+.practice-task-grid {
+  display: grid;
+  gap: clamp(10px, 1.5vw, 16px);
+}
+
+.practice-grade-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.practice-grade-card,
+.practice-task-card,
+.practice-detail,
+.practice-empty {
+  min-width: 0;
+  border: 1px solid var(--practice-border);
+  border-radius: 19px;
+  background: var(--practice-panel);
+}
+
+.practice-grade-card,
+.practice-task-card {
+  transition: border-color .16s ease, background-color .16s ease;
+}
+
+.practice-grade-card:hover,
+.practice-task-card:hover {
+  border-color: var(--practice-accent);
+  background-color: color-mix(in srgb, var(--practice-panel), var(--practice-accent) 4%);
+}
+
+.practice-grade-card {
+  position: relative;
+  display: grid;
+  min-height: clamp(112px, 14vw, 158px);
+  grid-template-columns: minmax(0, 1fr) minmax(54px, .86fr);
+  align-items: center;
+  gap: 8px;
+  padding: clamp(12px, 2vw, 22px);
+}
+
+.practice-grade-content {
+  display: grid;
+  min-width: 0;
+  gap: 8px;
+}
+
+.practice-grade-number {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 1px 6px;
+  line-height: 1;
+  font-weight: 700;
+}
+
+.practice-grade-number strong {
+  font-size: clamp(35px, 5vw, 60px);
+  letter-spacing: -.05em;
+}
+
+.practice-meta {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.practice-grade-card .practice-card-arrow {
+  position: absolute;
+  top: 6px;
+  right: 9px;
+}
+
+.practice-card-arrow {
+  color: var(--practice-accent);
+  font-size: 18px;
+  font-weight: 750;
+}
+
+.practice-art {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+}
+
+.practice-art-image {
+  display: block;
+  width: 100%;
+  max-width: 126px;
+  border-radius: 10px;
+  background-image: url('../../public/images/classroom-menu.png');
+  background-repeat: no-repeat;
+  filter: drop-shadow(0 8px 12px #0a0d16aa);
+}
+
+.practice-grade-card.is-empty .practice-art {
+  filter: grayscale(.78);
+  opacity: .58;
+}
+
+.practice-grade-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.practice-grade-tab {
+  display: grid;
+  min-width: 44px;
+  min-height: 44px;
+  place-items: center;
+  border: 1px solid var(--practice-border);
+  border-radius: 12px;
+  background: var(--practice-panel);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.practice-grade-tab:hover {
+  border-color: var(--practice-accent);
+}
+
+.practice-grade-tab[aria-current="page"] {
+  border-color: var(--practice-accent);
+  background: var(--practice-accent);
+  color: #202515;
+}
+
+.practice-task-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.practice-task-card {
+  display: grid;
+  min-height: 98px;
+  grid-template-columns: clamp(52px, 8vw, 82px) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: clamp(8px, 1.6vw, 18px);
+  padding: clamp(11px, 1.7vw, 17px);
+}
+
+.practice-task-card-content {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+}
+
+.practice-task-card h2,
+.practice-part h2 {
+  margin: 0;
+  color: var(--text);
+  font-size: clamp(15px, 2vw, 19px);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.practice-brief {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.practice-empty {
+  display: grid;
+  justify-items: center;
+  gap: 13px;
+  padding: 24px;
+}
+
+.practice-empty .practice-art {
+  width: 78px;
+}
+
+.practice-empty p {
+  margin: 0;
+}
+
+.practice-detail {
+  display: grid;
+  overflow: hidden;
+  max-width: 880px;
+}
+
+.practice-detail-main {
+  display: grid;
+  grid-template-columns: clamp(62px, 15vw, 144px) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(12px, 3vw, 28px);
+  padding: clamp(14px, 3.5vw, 34px);
+  background: radial-gradient(ellipse at 10% 20%, #44649424, transparent 58%);
+}
+
+.practice-detail-main > div {
+  display: grid;
+  min-width: 0;
+  gap: 8px;
+}
+
+.practice-detail-actions {
+  display: grid;
+  justify-items: start;
+  gap: 12px;
+  padding: clamp(14px, 2.5vw, 22px) clamp(14px, 3.5vw, 34px);
+  border-top: 1px solid var(--practice-border);
+}
+
+.practice-work-list {
+  display: grid;
+  width: 100%;
+  justify-items: start;
+  gap: 8px;
+}
+
+.practice-part {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--practice-border);
+}
+
+.practice-part .practice-meta {
+  margin-top: 4px;
+}
+
+.practice-part button {
+  flex: 0 0 auto;
+}
+
+.practice-resources {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.practice-page .practice-instruction-dialog {
+  border-color: var(--practice-border);
+  border-radius: 18px;
+  background: var(--practice-panel);
+  overscroll-behavior: contain;
+}
+
+.practice-page .practice-instruction-dialog .practice-instruction-close {
+  top: 0;
+  margin-bottom: 8px;
+  box-shadow: 0 0 0 5px var(--practice-panel);
+}
+
+.practice-page .practice-instruction ol {
+  padding-inline-start: 24px;
+}
+
+.practice-page .practice-instruction li {
+  padding-inline-start: 4px;
+  margin-block: 12px;
+  overflow-wrap: anywhere;
+}
+
+.practice-page .practice-instruction li::marker {
+  color: var(--practice-accent);
+}
+
+.practice-page .practice-guide-safety {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.practice-instruction-control > .practice-instruction-button[aria-expanded=true] {
+  border-color: var(--green);
+}
+
+.practice-instruction-dialog.practice-instruction-side[open] {
+  position: fixed;
+  inset: auto 0 0;
+  z-index: 1200;
+  width: 100%;
+  max-width: none;
+  max-height: min(78dvh, 750px);
+  margin: 0;
+  padding: 14px 16px;
+  border-radius: 15px 15px 0 0;
+  overscroll-behavior: contain;
+  background-color: var(--bg);
+  color: var(--text);
+  box-shadow: 0 -8px 22px #0005;
+}
+
+.practice-instruction-side .practice-instruction-close {
+  margin-block-end: 10px;
+}
+
+.practice-instruction-side .practice-instruction h2 {
+  font-size: 20px;
+  overflow-wrap: anywhere;
+}
+
+.practice-instruction-side .practice-instruction li {
+  overflow-wrap: anywhere;
+}
+
+@media (min-width: 1024px) {
+  body:has(.practice-instruction-side[open]) {
+    --practice-side-width: clamp(295px, 28vw, 405px);
+  }
+
+  body:has(.practice-instruction-side[open]) .content > main {
+    padding-inline-end: var(--practice-side-width);
+  }
+
+  body .practice-instruction-control .practice-instruction-dialog.practice-instruction-side[open] {
+    inset: 0 0 0 auto;
+    width: var(--practice-side-width);
+    height: 100dvh;
+    max-height: none;
+    padding: 14px 17px 25px;
+    border-radius: 0;
+    border-block: 0;
+    border-inline-end: 0;
+    box-shadow: none;
+  }
+}
+
+@media (max-width: 930px) {
+  .practice-task-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 690px) {
+  .practice-grade-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .practice-grade-tabs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(44px, 1fr));
+    gap: 4px;
+  }
+
+  .practice-grade-tab {
+    min-width: 0;
+  }
+
+  .practice-detail-actions > .button,
+  .practice-work-list > button,
+  .practice-resources {
+    width: 100%;
+  }
+
+  .practice-resources > .button,
+  .practice-resources > .practice-instruction-control {
+    flex: 1 1 120px;
+  }
+
+  .practice-resources .practice-instruction-button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 385px) {
+  .practice-grade-card {
+    padding: 10px;
+    grid-template-columns: minmax(0, 1fr) minmax(39px, .75fr);
+  }
+
+  .practice-grade-number {
+    gap: 3px;
+    font-size: 13px;
+  }
+
+  .practice-grade-number strong {
+    font-size: 32px;
+  }
+
+  .practice-detail-main {
+    align-items: start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .practice-grade-card,
+  .practice-task-card {
+    transition: none;
+  }
+}

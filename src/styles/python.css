@@ -1,0 +1,141 @@
+html:has(body.python-focus-mode),body.python-focus-mode{overflow:hidden}
+body.python-focus-mode .content>main{width:100%;max-width:none;min-height:0;padding:0;margin:0}
+.python-editor{
+ --py-bg:#151b27;--py-panel:#1d2635;--py-line:#3b485e;--py-accent:#c6ef80;--py-muted:#a9b6cb;
+ --py-font:'IBM Plex Mono',Consolas,'Courier New',monospace;
+ display:grid;grid-template-rows:auto auto minmax(0,1fr) auto;gap:7px;min-width:0;
+ height:var(--python-height,100dvh);
+ padding:max(6px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) max(7px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left));
+ color:#eef4ff;background:var(--py-bg)
+}
+.python-editor [hidden]{display:none!important}
+.python-editor :is(button,.button,summary){min-height:44px}
+.python-editor :is(button,.button){padding:6px 10px;border-radius:9px}
+.python-editor button[aria-pressed=true]{background:#354153;color:#eff7ff;border-color:#8999b4}
+.python-top{
+ display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;align-items:center;gap:6px;min-width:0
+}
+.python-top:has(>.practice-instruction-control){grid-template-columns:auto minmax(0,1fr) auto auto auto}
+.python-top .practice-instruction-button{font-size:12px;padding-inline:8px}
+.python-top>input{width:100%;min-width:0;min-height:44px;padding:7px 10px;font-size:16px}
+.python-save[data-state=dirty],.python-save[data-state=error]{color:#f2c46d}
+.python-menu{position:relative}
+.python-menu>summary,.python-library-menu>summary,.python-stdin>summary{
+ display:flex;align-items:center;gap:6px;list-style:none;cursor:pointer;
+ padding:6px 10px;border:1px solid var(--py-line);border-radius:9px;background:var(--py-panel);font-size:14px;font-weight:650
+}
+.python-menu>summary::-webkit-details-marker,.python-library-menu>summary::-webkit-details-marker,.python-stdin>summary::-webkit-details-marker{display:none}
+.python-menu>summary::after,.python-library-menu>summary::after,.python-stdin>summary::after{content:'⌄';color:var(--py-muted)}
+.python-menu[open]>summary::after,.python-library-menu[open]>summary::after,.python-stdin[open]>summary::after{content:'⌃'}
+.python-menu-body{
+ position:absolute;z-index:10;right:0;top:calc(100% + 5px);display:grid;gap:5px;
+ width:min(260px,90vw);max-height:calc(var(--python-height,100dvh) - 72px);overflow:auto;
+ padding:7px;border:1px solid var(--py-line);border-radius:12px;background:#202b3b;box-shadow:0 12px 25px #111827bf
+}
+.python-menu-body>button{justify-content:flex-start;text-align:start}
+.python-packages{display:grid;gap:4px;margin:5px 0}
+.python-packages>button{justify-content:flex-start;text-align:start}
+.python-packages>button span{display:grid;gap:1px;min-width:0}
+.python-packages code{color:#c8eed0;font:400 12px var(--py-font)}
+.python-execution{display:flex;align-items:center;gap:6px;min-width:0}
+.python-execution button{flex:none}
+.python-stop{min-width:44px;color:#ffb3b7}
+.python-status{min-width:0;color:var(--py-muted);font-size:13px;line-height:1.25;overflow-wrap:anywhere}
+.python-main{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:8px;min-width:0;min-height:0}
+.python-code{
+ display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:6px;min-height:0;min-width:0
+}
+.python-file-tabs,.python-keys{
+ display:flex;align-items:center;gap:5px;min-width:0;overflow:auto;scrollbar-width:thin
+}
+.python-file-tabs button{
+ flex:none;max-width:190px;overflow:hidden;text-overflow:ellipsis;display:block;white-space:nowrap;
+ min-height:39px;text-align:start;font:600 13px var(--py-font)
+}
+.python-keys button{flex:none;min-width:41px;font:600 15px var(--py-font);padding-inline:8px}
+.python-code-area{
+ display:grid;grid-template-columns:auto minmax(0,1fr);min-width:0;min-height:0;overflow:hidden;
+ border:1px solid var(--py-line);border-radius:11px;background:#121824
+}
+.python-code-area:focus-within{border-color:#869ab9}
+.python-code-surface{position:relative;min-width:0;min-height:0}
+.python-source,.python-highlight,.python-lines{
+ font:400 16px/1.58 var(--py-font);letter-spacing:0;tab-size:4;white-space:pre;overflow-wrap:normal;
+ padding:10px;margin:0;border:0;border-radius:0
+}
+.python-highlight,.python-source{
+ position:absolute;inset:0;width:100%;height:100%;overflow:auto;background:transparent
+}
+.python-highlight{pointer-events:none;color:#ecf3ff;scrollbar-width:none}
+.python-highlight::-webkit-scrollbar{display:none}
+.python-source{
+ resize:none;outline:0;color:transparent;-webkit-text-fill-color:transparent;caret-color:#eaf5ff;
+ -webkit-text-size-adjust:100%;text-size-adjust:100%;overscroll-behavior:contain
+}
+.python-source:focus-visible{outline:0}
+.python-source::selection{color:transparent;background:#688fdc64}
+.python-lines{
+ min-width:35px;overflow:hidden;text-align:right;
+ color:#8595ac;background:#1a2332;border-right:1px solid #2f3d53;font-size:16px
+}
+.python-token-keyword{color:#d1b3ff}.python-token-string{color:#c2e998}.python-token-number{color:#ffcc9d}
+.python-token-builtin{color:#87d6ff}.python-token-comment{color:#9eabba}
+.python-side,.python-pane{min-width:0;min-height:0}
+.python-pane{
+ height:100%;overflow:auto;overscroll-behavior:contain;
+ padding:8px;border:1px solid var(--py-line);border-radius:11px;background:var(--py-panel)
+}
+.python-result{display:flex;flex-direction:column;gap:6px}
+.python-terminal{
+ flex:1;min-height:85px;overflow:auto;overscroll-behavior:contain;white-space:pre-wrap;overflow-wrap:anywhere;
+ margin:0;border:1px solid #364359;border-radius:9px;padding:8px;color:#eaf3ee;background:#111a23;font:400 15px/1.55 var(--py-font)
+}
+.python-terminal:empty::before{content:'Вивід програми';color:#9aacc0}
+.python-stdin textarea{width:100%;height:78px;min-height:52px;padding:7px;font:400 16px/1.35 var(--py-font)}
+.python-note{margin:5px 0;color:var(--py-muted);font-size:13px}
+.python-live-input{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px;align-items:end}
+.python-live-input input{width:100%;min-width:0;min-height:44px;padding:6px 8px;font-size:16px}
+.python-input-prompt{min-width:0;overflow-wrap:anywhere;color:#dfe9f7;font-size:13px}
+.python-input-prompt input{display:block}
+.python-nav{display:flex;justify-content:flex-end;gap:5px;min-width:0}
+.python-nav button>span{display:flex;align-items:center;gap:5px}
+.python-nav button b{min-width:15px;font-size:17px;line-height:1}
+.python-dialog{width:min(420px,calc(100% - 22px));border:1px solid var(--py-line);border-radius:13px;padding:12px;background:var(--py-panel);color:inherit}
+.python-dialog::backdrop{background:#101724be}
+.python-dialog input{width:100%;font-size:16px}
+.python-dialog-actions{display:flex;justify-content:flex-end;gap:6px;margin-top:8px}
+.python-guide{min-width:0}
+.python-guide h2{margin:0 0 6px;font-size:18px}
+.python-guide-search{width:100%;margin-bottom:7px;font-size:16px}
+.python-guide-search input{width:100%;font-size:16px}
+.python-guide-list{display:grid;gap:5px}
+.python-guide-topic{border:1px solid var(--py-line);border-radius:9px;background:#182231}
+.python-guide-topic>summary{padding:8px;cursor:pointer;list-style:none;font-weight:650}
+.python-guide-topic>summary::-webkit-details-marker{display:none}
+.python-guide-topic>summary::before{content:'›';padding-right:7px;color:#c5e68c}
+.python-guide-topic[open]>summary::before{content:'⌄'}
+.python-guide-topic-body{padding:1px 8px 9px}
+.python-guide-topic-body p{margin:4px 0 7px}
+.python-guide-command{margin:5px 0;color:#c4e8a0}
+.python-guide-commands dd{margin:0 0 9px;color:#d8e2ef;font-size:14px}
+.python-guide-example h3{font-size:15px;margin:9px 0 4px}
+.python-guide-example pre,.python-guide-topic pre{
+ padding:7px;overflow:auto;border-radius:8px;background:#101825;color:#dceefb;font:400 13px/1.45 var(--py-font)
+}
+@media(max-width:820px){
+ .python-main{display:block}
+ .python-code,.python-side{height:100%}
+ .python-editor[data-view=code] .python-side,.python-editor:not([data-view=code]) .python-code{display:none}
+ .python-nav{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}
+ .python-nav button{min-width:0;padding-inline:0;font-size:12px}
+ .python-nav button>span{flex-direction:column;gap:3px}
+ .python-editor .python-keys button{padding-inline:6px;min-width:38px}
+ .python-file-tabs button{max-width:155px}
+}
+@media(min-width:821px){
+ .python-nav button:first-child{display:none}
+}
+@media(forced-colors:active){
+ .python-highlight{display:none}
+ .python-source{color:CanvasText;-webkit-text-fill-color:CanvasText}
+}
