@@ -55,7 +55,7 @@ server.on('error',error=>{
   process.exitCode=1;
 });
 server.listen(port,host,()=>{
-  console.log('\nінформатика:офлайн · локальна версія 0.5');
+  console.log('\nінформатика:офлайн · локальна версія 0.5.1');
   console.log(`На цьому ПК: http://localhost:${port}`);
   console.log(`Адмінка для вчителя: http://localhost:${port}/#admin`);
   if(lan){

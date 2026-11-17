@@ -1,0 +1,2 @@
+# Keep Windows command scripts byte-for-byte in GitHub source ZIPs.
+*.bat -text
