@@ -1,136 +1,184 @@
+html:has(body.raster-focus-mode),body.raster-focus-mode{overflow:hidden}
+body.raster-focus-mode .content>main{width:100%;max-width:none;min-height:0;margin:0;padding:0}
 .raster-editor{
- --raster-panel:#1b2230;
- --raster-border:#384458;
- --raster-muted:#afbbca;
- display:flex;flex-direction:column;gap:8px;
- min-height:var(--raster-height,100dvh);min-width:0;
- padding:8px max(9px,env(safe-area-inset-right)) max(9px,env(safe-area-inset-bottom)) max(9px,env(safe-area-inset-left));
- background:#151b26;
-}
-.raster-editor button,.raster-editor .button,.raster-editor summary{
- min-height:42px;padding:6px 10px;white-space:nowrap;
-}
-.raster-editor button[aria-pressed=true]{
- color:#1c2b1a;background:var(--green);border-color:var(--green);
+ --raster-panel:#1e2833;--raster-border:#3c4b5c;--raster-muted:#b1bece;--raster-accent:#d5f879;
+ display:grid;grid-template-rows:auto auto minmax(0,1fr) auto;gap:7px;
+ height:var(--raster-height,100dvh);min-height:0;min-width:0;
+ padding:max(7px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left));
+ background:#151c27;color:var(--text);
 }
 .raster-editor [hidden]{display:none!important}
-.raster-header{
- display:grid;grid-template-columns:auto minmax(55px,1fr) auto auto auto;gap:6px;align-items:center;
-}
-.raster-header .raster-name{min-width:0;width:100%;min-height:42px;padding:6px 9px;font-size:16px}
+.raster-editor :is(button,.button,summary){min-height:44px}
+.raster-editor :is(button,.button){padding:7px 10px;border-radius:9px;white-space:nowrap}
+.raster-editor button:disabled{cursor:default}
+.raster-editor button[aria-pressed=true]{color:#203015;background:var(--raster-accent);border-color:var(--raster-accent)}
+.raster-header{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;gap:6px;align-items:center;min-width:0}
+.raster-header:has(>.practice-instruction-control){grid-template-columns:auto minmax(0,1fr) auto auto auto}
+.raster-header .raster-name{width:100%;min-width:0;min-height:44px;padding:7px 10px;font-size:16px}
 .raster-header .practice-instruction-button{font-size:12px;padding-inline:8px}
 .raster-file-menu{position:relative}
-.raster-editor summary{
- display:flex;align-items:center;justify-content:space-between;gap:6px;list-style:none;
- border:1px solid var(--raster-border);border-radius:10px;background:var(--raster-panel);cursor:pointer;
+.raster-file-menu>summary{
+ display:flex;align-items:center;justify-content:center;gap:6px;list-style:none;cursor:pointer;
+ padding:6px 11px;border:1px solid var(--raster-border);border-radius:9px;background:var(--raster-panel);font-weight:650;
 }
-.raster-editor summary::-webkit-details-marker{display:none}
-.raster-editor summary::after{content:'⌄';color:var(--raster-muted);font-weight:600}
-.raster-editor details[open]>summary::after{content:'⌃'}
-.raster-editor summary:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+.raster-file-menu>summary::-webkit-details-marker{display:none}
+.raster-file-menu>summary::after{content:'⌄';color:var(--raster-muted)}
+.raster-file-menu[open]>summary::after{content:'⌃'}
+.raster-editor summary:focus-visible{outline:2px solid var(--raster-accent);outline-offset:2px}
 .raster-file-actions{
- position:absolute;top:calc(100% + 5px);right:0;z-index:4;
- display:grid;gap:5px;min-width:215px;
- padding:7px;border:1px solid var(--raster-border);border-radius:12px;background:#191f2b;box-shadow:0 8px 22px #0a0e17a6;
+ position:absolute;z-index:40;right:0;top:calc(100% + 5px);display:grid;gap:5px;
+ width:min(260px,calc(100vw - 26px));max-height:calc(var(--raster-height,100dvh) - 85px);overflow:auto;overscroll-behavior:contain;
+ padding:7px;border:1px solid var(--raster-border);border-radius:12px;background:#222e3a;box-shadow:0 12px 28px #080d18bd;
 }
 .raster-file-actions>:is(button,a){justify-content:flex-start;text-align:start}
-.raster-file-export{display:grid;grid-template-columns:1fr auto;gap:6px}
+.raster-file-export{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px}
 .raster-file-export select{width:100%;min-width:0}
-.raster-tool-modes,.raster-tools,.raster-quick,.raster-selection-actions,.raster-path-actions{
- display:flex;align-items:center;gap:6px;min-width:0;overflow-x:auto;scrollbar-width:thin;
-}
-.raster-tool-modes button{flex:1}
+.raster-tool-shelf{display:grid;gap:5px;min-width:0}
+.raster-tool-modes{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;min-width:0}
+.raster-editor .raster-tool-modes button{min-width:0;padding-inline:4px;font-size:12px}
 .raster-tools{
- padding:4px;background:var(--raster-panel);border:1px solid var(--raster-border);border-radius:12px;
+ display:flex;align-items:center;gap:5px;min-width:0;overflow:auto;overscroll-behavior-x:contain;scrollbar-width:thin;
+ padding:3px;border:1px solid var(--raster-border);border-radius:11px;background:var(--raster-panel);
 }
-.raster-tools button{flex:none;min-height:43px;font-size:13px}
-.raster-tool-icon{display:grid;place-items:center;min-width:19px;font-size:18px;line-height:1}
-.raster-quick{justify-content:space-between}
-.raster-colors,.raster-zoom,.raster-size{display:flex;align-items:center;gap:5px;flex:none}
-.raster-colors button,.raster-zoom button{min-width:40px;padding-inline:7px}
-.raster-colors input[type=color]{
- display:block;width:40px;height:42px;min-height:42px;padding:4px;border-radius:9px;cursor:pointer;
+.raster-tools button{flex:none;gap:5px;font-size:13px}
+.raster-tool-icon{display:inline-grid;place-items:center;min-width:20px;font-size:20px;line-height:1}
+.raster-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(290px,330px);gap:8px;min-width:0;min-height:0}
+.raster-workspace{display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:5px;min-width:0;min-height:0}
+.raster-quick{
+ display:flex;align-items:center;gap:5px;min-width:0;padding:3px;
+ border:1px solid var(--raster-border);border-radius:11px;background:var(--raster-panel);
 }
-.raster-size,.raster-fields>label{color:var(--raster-muted);font-size:12px;font-weight:650}
-.raster-size input{max-width:65px}
-.raster-editor input[type=number],.raster-editor select,.raster-dialog input{
- min-height:41px;padding:5px 7px;font-size:16px;
-}
-.raster-editor select{
- color:inherit;background:#151b26;border:1px solid var(--raster-border);border-radius:8px;
-}
-.raster-zoom output{min-width:45px;text-align:center;font-variant-numeric:tabular-nums}
-.raster-options{min-width:0}
-.raster-tool-panel{display:grid;gap:6px;padding:6px 0 0}
-.raster-fields{
- display:grid;grid-template-columns:repeat(auto-fit,minmax(min(130px,100%),1fr));gap:7px;
- padding:8px;border:1px solid var(--raster-border);border-radius:10px;background:var(--raster-panel);
-}
-.raster-fields>label{display:grid;gap:4px;min-width:0;align-content:start}
-.raster-fields input,.raster-fields select{width:100%;min-width:0}
-.raster-fields input[type=range]{min-height:34px;padding:0;accent-color:var(--green)}
-.raster-fields p{margin:0;color:var(--raster-muted);font-size:13px}
-.raster-path-actions:not(:has(button:not([hidden]))){display:none}
-.raster-workspace{
- display:grid;grid-template-columns:minmax(0,1fr) 258px;
- flex:1;gap:9px;min-width:0;min-height:320px;
-}
+.raster-zoom{display:flex;align-items:center;gap:4px;flex:none;min-width:0}
+.raster-editor .raster-zoom button{flex:none;min-width:36px;padding-inline:6px;font-size:16px}
+.raster-zoom output{min-width:44px;text-align:center;font-size:13px;font-variant-numeric:tabular-nums}
+.raster-context-button{min-width:0;max-width:180px;gap:5px;overflow:hidden}
+.raster-context-button>span{min-width:0;overflow:hidden;text-overflow:ellipsis;font-size:12px}
+.raster-context-button>b{flex:none;font-size:18px;line-height:1}
+.raster-quick .raster-vector-link{flex:none;margin-inline-start:auto;font-size:12px}
 .raster-viewport{
- display:flex;overflow:auto;overscroll-behavior:contain;
- min-width:0;min-height:280px;height:max(280px,calc(var(--raster-height,100dvh) - 295px));
- padding:9px;background:#10151f;border:1px solid var(--raster-border);border-radius:13px;
+ display:flex;min-width:0;min-height:0;padding:14px;overflow:auto;overscroll-behavior:contain;
+ background:#222c39 radial-gradient(#536275 1px,transparent 1px) 0 0/14px 14px;
+ border:1px solid var(--raster-border);border-radius:11px;
 }
 .raster-viewport.is-pan,.raster-stage>canvas:first-child{touch-action:none}
 .raster-stage{
  position:relative;isolation:isolate;flex:none;margin:auto;
- background:repeating-conic-gradient(#cdd0d6 0% 25%,#eef0f4 0% 50%) 0 0 / 16px 16px;
- box-shadow:0 3px 14px #060910bf;
+ background:repeating-conic-gradient(#cdd0d6 0% 25%,#eef0f4 0% 50%) 0 0/16px 16px;
+ box-shadow:0 5px 18px #060910aa;
 }
-.raster-stage canvas{
- display:block;width:100%;height:100%;max-width:none;image-rendering:pixelated;
-}
+.raster-stage canvas{display:block;width:100%;height:100%;max-width:none;image-rendering:pixelated}
+.raster-stage>canvas:first-child:focus-visible{outline:2px solid var(--raster-accent);outline-offset:4px}
 .raster-guide{position:absolute;inset:0;pointer-events:none}
-.raster-layers{
- align-self:start;min-width:0;padding:5px;
- background:var(--raster-panel);border:1px solid var(--raster-border);border-radius:12px;
+.raster-path-actions{display:flex;align-items:center;gap:5px;min-width:0;overflow:auto;scrollbar-width:thin}
+.raster-path-actions:not(:has(button:not([hidden]))){display:none}
+.raster-path-actions button{flex:none;font-size:13px}
+.raster-inspector{
+ min-width:0;min-height:0;overflow:auto;overscroll-behavior:contain;padding:9px;
+ border:1px solid var(--raster-border);border-radius:12px;background:var(--raster-panel);
 }
-.raster-layer-actions{display:flex;gap:6px;align-items:center;padding:6px 0}
-.raster-layer-actions button{min-width:40px}
-.raster-layer-list{display:grid;gap:5px;max-height:270px;overflow:auto}
-.raster-layer-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:5px}
-.raster-layer-select{justify-content:flex-start;overflow:hidden;text-overflow:ellipsis}
-.raster-layer-fields{margin-top:6px}
-.raster-status{margin:0;min-height:20px;font-size:12px;color:var(--raster-muted)}
+.raster-panel-header{display:flex;align-items:center;justify-content:space-between;gap:6px;min-width:0;min-height:35px}
+.raster-tool-label{min-width:0;margin:2px 3px 8px;color:#e7f3d8;font-size:15px;font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.raster-panel-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;margin-bottom:9px}
+.raster-editor .raster-panel-tabs button{min-width:0;padding-inline:3px;font-size:12px}
+.raster-panel-body{min-width:0}
+.raster-mobile-tabs,.raster-editor .raster-panel-close{display:none}
+.raster-tool-panel{display:grid;gap:7px}
+.raster-fields{
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;
+ padding:9px;margin:0 0 7px;border:1px solid var(--raster-border);border-radius:10px;background:#18212d;
+}
+.raster-fields>label{display:grid;gap:4px;min-width:0;align-content:start;color:var(--raster-muted);font-size:12px;line-height:1.45}
+.raster-fields>label:only-child{grid-column:1 / -1}
+.raster-fields :is(input,select){width:100%;min-width:0;min-height:44px;padding:6px 7px;font-size:16px}
+.raster-editor select{min-height:44px;padding:6px 7px;font-size:16px;background:#151e29;border:1px solid var(--raster-border);border-radius:8px;color:inherit}
+.raster-fields input[type=color]{height:44px;padding:3px;cursor:pointer}
+.raster-fields input[type=range]{min-height:44px;padding:0;accent-color:var(--raster-accent)}
+.raster-fields>button,.raster-fields>p{grid-column:1 / -1}
+.raster-fields p,.raster-hint{margin:5px 2px;color:var(--raster-muted);font-size:13px;line-height:1.5}
+.raster-color-fields>label:last-child{grid-column:1 / -1}
+.raster-color-actions{display:flex;gap:6px;margin:7px 0 11px}
+.raster-color-actions button{flex:1;min-width:0;font-size:13px}
+.raster-palette{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;margin:9px 0 12px}
+.raster-editor .raster-swatch{min-width:0;min-height:44px;padding:0;border:2px solid #758394;border-radius:8px;background:var(--swatch);box-shadow:inset 0 0 0 1px #0002}
+.raster-editor .raster-swatch:hover{border-color:#f4f9ed;background:var(--swatch)}
+.raster-editor .raster-swatch[aria-pressed=true]{border-color:#fff;background:var(--swatch);outline:2px solid var(--raster-accent);outline-offset:1px}
+.raster-selection-actions{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.raster-selection-actions button{flex:1 1 120px;min-width:0;white-space:normal;font-size:13px;line-height:1.3}
+.raster-layers{min-width:0}
+.raster-layers-title{margin:5px 2px;font-size:14px;font-weight:650}
+.raster-layer-actions{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin:6px 0 9px}
+.raster-layer-actions button{min-width:42px;font-size:13px}
+.raster-layer-actions>button:first-child{margin-inline-end:auto}
+.raster-layer-list{display:grid;gap:5px;max-height:290px;overflow:auto;scrollbar-width:thin}
+.raster-layer-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:4px;padding:3px;border:1px solid var(--raster-border);border-radius:10px}
+.raster-layer-row:has([aria-pressed=true]){border-color:#9db879;background:#2c382b}
+.raster-editor .raster-layer-select{display:flex;align-items:center;justify-content:flex-start;gap:8px;min-width:0;min-height:48px;padding:4px 5px;text-align:start;border-color:transparent;background:transparent}
+.raster-editor .raster-layer-select[aria-pressed=true]{color:#eef9df;background:#36452d;border-color:transparent}
+.raster-layer-thumb{display:block;flex:none;width:40px;height:32px;object-fit:contain;border:1px solid #7b8795;border-radius:4px;background:repeating-conic-gradient(#cad0d8 0 25%,#f1f3f6 0 50%) 0 0/8px 8px}
+.raster-layer-name{min-width:0;overflow:hidden;text-overflow:ellipsis;font-size:13px}
+.raster-layer-row>button:last-child{min-width:36px;padding-inline:7px}
+.raster-layer-fields{margin-top:10px}
+.raster-status-bar{display:flex;flex-direction:row;justify-content:space-between;align-items:center;gap:10px;min-width:0;min-height:18px;margin:0;padding:0;border:0;color:var(--raster-muted);font-size:12px;line-height:1.4}
+.raster-document-info{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.raster-status{flex:none;margin:0;color:var(--raster-muted);font-size:12px;text-align:end}
 .raster-dialog{
- width:min(520px,calc(100% - 18px));max-height:calc(100dvh - 18px);
- border:1px solid var(--raster-border);border-radius:15px;background:#191f2b;color:var(--text);
+ width:min(520px,calc(100% - 20px));max-height:calc(var(--raster-height,100dvh) - 20px);overflow:auto;
+ padding:14px;border:1px solid var(--raster-border);border-radius:15px;background:#1e2935;color:var(--text);
 }
 .raster-dialog::backdrop{background:#0a1018c4}
+.raster-dialog h2{margin:0 0 12px;font-size:21px}
 .raster-dialog-error:not(:empty){margin:8px 0 0;color:#ffb3b7}
 .raster-dialog-error:empty{display:none}
-.raster-dialog .raster-layer-actions{justify-content:flex-end}
-@media(max-width:939px){
- .raster-editor{gap:6px}
- .raster-workspace{grid-template-columns:minmax(0,1fr);min-height:0}
- .raster-viewport{min-height:210px;height:max(210px,calc(var(--raster-height,100dvh) - 337px))}
- .raster-layers{padding:4px}
- .raster-layer-list{max-height:200px}
- .raster-size{font-size:0}
- .raster-size input{width:57px}
- .raster-quick{justify-content:flex-start}
+.raster-dialog .raster-layer-actions{justify-content:flex-end;margin-bottom:0}
+.raster-dialog .raster-layer-actions>button:first-child{margin-inline-end:0}
+@media(min-width:851px){
+ .raster-tool-shelf{grid-template-columns:345px minmax(0,1fr)}
+ body:has(.practice-instruction-side[open]) .raster-layout{grid-template-columns:minmax(0,1fr) minmax(240px,28%)}
 }
-@media(min-width:940px){
- .raster-focus-mode{overflow:hidden}
- .raster-editor{height:var(--raster-height,100dvh);min-height:0}
- .raster-workspace{flex:1 1 0;min-height:0;grid-template-rows:minmax(0,1fr)}
- .raster-viewport{height:auto;min-height:0}
- .raster-layers{align-self:stretch;overflow:auto}
- .raster-options[open]{max-height:min(32dvh,290px);overflow:auto}
- body:has(.practice-instruction-side[open]) .raster-workspace{grid-template-columns:minmax(0,1fr) minmax(174px,23%)}
+@media(max-width:1100px){
+ .raster-quick .raster-vector-link{display:none}
+}
+@media(max-width:850px){
+ .raster-editor{grid-template-rows:auto auto minmax(0,1fr) auto auto;gap:6px}
+ .raster-layout{grid-template-columns:minmax(0,1fr)}
+ .raster-viewport{padding:10px}
+ .raster-tools button{font-size:12px}
+ .raster-quick{gap:4px;padding:2px}
+ .raster-zoom{gap:3px}
+ .raster-editor .raster-zoom button{padding-inline:4px}
+ .raster-zoom output{min-width:40px}
+ .raster-editor .raster-context-button{flex:none;min-width:38px;width:38px;margin-inline-start:auto;padding-inline:4px}
+ .raster-context-button>span{display:none}
+ .raster-inspector{display:none}
+ .raster-panel-open .raster-inspector{
+  display:block;position:fixed;z-index:25;inset-inline:max(6px,env(safe-area-inset-left));
+  bottom:calc(79px + env(safe-area-inset-bottom));max-height:min(70dvh,max(132px,calc(var(--raster-height,100dvh) - 164px)));
+  border-radius:16px;padding:9px;box-shadow:0 -12px 32px #070e1bbd;
+ }
+ .raster-panel-header{position:sticky;top:-9px;z-index:2;background:var(--raster-panel);padding-top:2px;margin-top:-2px}
+ .raster-panel-header .raster-tool-label{margin-bottom:4px}
+ .raster-editor .raster-panel-close{display:inline-flex;flex:none;min-width:44px}
+ .raster-mobile-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;min-width:0}
+ .raster-mobile-tabs button{min-width:0;padding-inline:3px;font-size:12px}
+ .raster-layer-list{max-height:230px}
+ .raster-status-bar{gap:6px;font-size:11px}
+ .raster-status{font-size:11px}
 }
 @media(max-width:410px){
- .raster-header{grid-template-columns:auto minmax(0,1fr) auto auto auto;gap:4px}
- .raster-header .button,.raster-header button,.raster-header summary{font-size:12px;padding-inline:6px}
- .raster-editor .raster-tool-modes button{font-size:12px}
- .raster-selection-actions button,.raster-path-actions button{font-size:12px}
+ .raster-header{gap:4px}
+ .raster-header :is(button,.button,summary){padding-inline:8px;font-size:13px}
+ .raster-header .raster-name{padding-inline:8px}
+ .raster-header .practice-instruction-button{padding-inline:5px;font-size:11px}
+ .raster-editor .raster-tool-modes button{font-size:11px;padding-inline:2px}
+ .raster-tools{gap:4px}
+ .raster-tools button{padding-inline:8px}
+ .raster-palette{grid-template-columns:repeat(6,minmax(0,1fr))}
+ .raster-document-info{font-size:10px}
+}
+@media(max-width:350px){
+ .raster-zoom button:last-child{display:none}
+}
+@media(max-height:520px) and (min-width:600px) and (max-width:850px){
+ .raster-tool-shelf{grid-template-columns:minmax(245px,.85fr) minmax(0,1fr)}
+ .raster-panel-open .raster-inspector{max-height:calc(var(--raster-height,100dvh) - 104px)}
 }

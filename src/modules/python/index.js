@@ -6,14 +6,11 @@ import { blankProject,readProject,projectBlob,scriptBlob,projectExtension,cleanP
 import { createRunner } from './runner.js';
 import { createGuide } from './guide.js';
 import { createTkView } from './tk-view.js';
+import { libraries,normalizePackages,readPackages,savePackages } from './libraries.js';
 
 const button=(label,onClick,attrs={})=>el('button',{type:'button',onClick,...attrs},label);
 const icon=(mark,label,onClick,attrs={})=>button(mark,onClick,{title:label,'aria-label':label,...attrs});
 const isScript=name=>/\.py$/i.test(name);
-const libraries={
-  numpy:['NumPy','import numpy as np'],sympy:['SymPy','import sympy as sp'],
-  pillow:['Pillow','from PIL import Image'],mpmath:['mpmath','import mpmath'],tzdata:['Часові пояси','from zoneinfo import ZoneInfo']
-};
 const keywords=new Set('and as assert async await break class continue def del elif else except finally for from global if import in is lambda nonlocal not or pass raise return try while with yield match case True False None'.split(' '));
 const builtins=new Set('print input int str float bool len range list dict set tuple sum min max sorted open enumerate round abs zip type'.split(' '));
 const syntax=/#.*|"""[\s\S]*?(?:"""|$)|'''[\s\S]*?(?:'''|$)|"(?:\\.|[^"\\\n])*"?|'(?:\\.|[^'\\\n])*'?|\b(?:0[xob][a-f\d]+|\d+(?:\.\d+)?)\b|\b[A-Za-z_][A-Za-z_\d]*\b/gi;
@@ -37,6 +34,7 @@ function paintCode(node,text,enabled){
 export function mount(root,{filesystem,notify,fileId,rememberWork,resume}){
   let project=blankProject(),record,active=project.entry,disposed=false,opening=false,loading=Promise.resolve();
   let state='boot',runtimePackages=[],guideKey,session=false,renderFrame,outputFrame,dialog;
+  let selectedPackages=readPackages(),failedPackages=[];
   let transcript='',outputCapped=false;
   const positions=new Map();
   const host=el('section',{className:'python-editor','aria-label':'Середовище Python','data-view':'code'});
@@ -57,7 +55,7 @@ export function mount(root,{filesystem,notify,fileId,rememberWork,resume}){
     if(state!=='input')return;
     const value=inputValue.value;
     inputValue.value='';inputForm.hidden=true;
-    appendOutput(value+'\n');setState('running','Виконуємо…');
+    setState('running','Виконуємо…');
     runner.send({type:'input',value});
   }},inputLabel,el('button',{type:'submit',className:'primary'},'Ввести'));
   const result=el('section',{className:'python-pane python-result','aria-label':'Результат'},terminal,inputForm,
@@ -199,12 +197,20 @@ export function mount(root,{filesystem,notify,fileId,rememberWork,resume}){
   }
   function receive(message){
     if(disposed)return;
-    if(message.type==='loading'){setState('boot','Готуємо Python…');return;}
+    if(message.type==='loading'){
+      runtimePackages=[];failedPackages=[];renderPackages();renderGuide();
+      setState('boot','Готуємо Python…');return;
+    }
     if(message.type==='ready'){
       runtimePackages=Array.isArray(message.packages)?message.packages.filter(name=>Object.hasOwn(libraries,name)):[];
+      failedPackages=normalizePackages(message.failedPackages);
       inputExplanation.textContent=message.interactiveInput===true?'Заповни наперед або вводь відповіді під час виконання.':'Задай по одному рядку на кожен виклик input().';
       renderPackages();renderGuide();
       setState('ready',typeof message.version==='string'?'Python '+message.version.slice(0,30)+' · готово':'Готово до запуску');
+      if(failedPackages.length){
+        const warning='Не вдалося підключити: '+failedPackages.map(key=>libraries[key][0]).join(', ')+'. Повтори спробу в налаштуваннях Python.';
+        status.textContent=warning;notify(warning);
+      }
       return;
     }
     if(message.type==='status'&&typeof message.message==='string'){status.textContent=message.message.slice(0,200);return;}
@@ -236,7 +242,7 @@ export function mount(root,{filesystem,notify,fileId,rememberWork,resume}){
       setState(message.fatal===false?'ready':'error',error.slice(0,140));
     }
   }
-  const runner=createRunner(receive);
+  const runner=createRunner(receive,selectedPackages);
   function run(){
     if(state==='error'){runner.start();return;}
     if(state!=='ready'||opening)return;
@@ -283,7 +289,8 @@ export function mount(root,{filesystem,notify,fileId,rememberWork,resume}){
         replaceSelection(indent+statement+'\n');
       },{'aria-label':'Вставити '+statement});
     }));
-    if(!runtimePackages.length)packageList.append(el('p',{className:'python-note'},'Стандартні модулі доступні через import.'));
+    if(!runtimePackages.length)packageList.append(el('p',{className:'python-note'},'Стандартні модулі доступні через import. Додаткові бібліотеки можна підключити в налаштуваннях.'));
+    packageList.append(button('Налаштувати бібліотеки…',settingsDialog));
   }
   function renderGuide(){
     const key=runtimePackages.join(',');
@@ -334,6 +341,44 @@ export function mount(root,{filesystem,notify,fileId,rememberWork,resume}){
     host.append(dialog);dialog.showModal();input.focus();input.select();
   }
 
+  function settingsDialog(){
+    if(dialog?.open)return;
+    const draft=new Set(selectedPackages),controls=new Map();
+    const choices=el('fieldset',{className:'python-library-options'},el('legend',{},'Додаткові бібліотеки'));
+    for(const [key,[label,,description]] of Object.entries(libraries)){
+      const control=el('input',{type:'checkbox',name:key,checked:draft.has(key),onChange:()=>{
+        if(control.checked)draft.add(key);else draft.delete(key);
+        syncDependency();
+      }});
+      controls.set(key,control);
+      choices.append(el('label',{},control,el('span',{},el('strong',{},label),el('small',{},description))));
+    }
+    function syncDependency(){
+      const mpmath=controls.get('mpmath');
+      mpmath.checked=draft.has('mpmath')||draft.has('sympy');
+      mpmath.disabled=draft.has('sympy');
+    }
+    syncDependency();
+    const form=el('form',{onSubmit:event=>{
+      event.preventDefault();
+      const next=normalizePackages([...draft]);
+      const changed=next.join(',')!==selectedPackages.join(',');
+      try{savePackages(next);}
+      catch{notify('Не вдалося зберегти налаштування у браузері. Вибір діятиме до закриття редактора.');}
+      selectedPackages=next;dialog.close();
+      if(!changed&&!failedPackages.length&&state!=='error')return;
+      tk.clear();tkIntro.hidden=false;session=false;inputForm.hidden=true;
+      runner.restart(selectedPackages);
+    }},el('h2',{id:'python-settings-title'},'Налаштування Python'),
+      el('p',{className:'python-note'},'Без вибраних бібліотек завантажується лише базовий Python зі стандартними модулями. Вибір зберігається в цьому браузері.'),
+      choices,
+      el('p',{className:'python-note'},'Зміна бібліотек перезапустить Python і зупинить поточну програму. Код залишиться в редакторі.'),
+      el('div',{className:'python-dialog-actions'},button('Скасувати',()=>dialog.close()),el('button',{className:'primary',type:'submit'},'Застосувати')));
+    dialog=el('dialog',{className:'python-dialog python-settings','aria-labelledby':'python-settings-title'},form);
+    dialog.addEventListener('close',()=>dialog.remove(),{once:true});
+    host.append(dialog);dialog.showModal();
+  }
+
   const mainFile=button('Зробити головним',()=>{project.entry=active;renderFiles();autosave.change();});
   const removeFile=button('Видалити файл',()=>{
     if(active===project.entry||!confirm('Видалити «'+active+'» з проєкту?'))return;
@@ -348,6 +393,7 @@ export function mount(root,{filesystem,notify,fileId,rememberWork,resume}){
       button('Новий файл',()=>fileDialog(false)),button('Додати файли…',()=>fileInput.click()),
       button('Перейменувати файл',()=>fileDialog(true)),mainFile,removeFile,exportPy,
       button('Завантажити проєкт',()=>{try{download(projectBlob(project),cleanProjectName(name.value)+projectExtension);}catch(error){notify(error.message);}}),
+      button('Налаштування',settingsDialog),
       el('details',{className:'python-library-menu'},el('summary',{},'Бібліотеки'),packageList)));
   fileMenu.addEventListener('click',event=>{if(event.target.closest('button'))fileMenu.open=false;});
   const saveButton=icon('✓','Зберегти',()=>{

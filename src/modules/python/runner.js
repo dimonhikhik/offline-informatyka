@@ -1,8 +1,10 @@
 import { el } from '../../components/ui.js';
+import { normalizePackages } from './libraries.js';
 
 const indexURL = new URL('../../vendor/pyodide/', import.meta.url);
 let cachedSources;
 let transport,attached,latest;
+let configuredPackages=[];
 
 function readSource(file) {
   return fetch(new URL(file, import.meta.url)).then(response=>{
@@ -66,8 +68,10 @@ function createTransport(onMessage) {
   }
   window.addEventListener('message',workerError);
 
-  async function start() {
+  async function start(requested=[]) {
     stop();
+    const packages=normalizePackages(requested);
+    configuredPackages=packages;
     const token=sequence;
     onMessage({type:'loading'});
     timeout=setTimeout(()=>{if(sequence===token)fail('Час завантаження вичерпано. Перевір Wi-Fi й повтори спробу.');},45000);
@@ -82,7 +86,7 @@ function createTransport(onMessage) {
         onMessage(data);
       };
       frame.contentWindow.postMessage({
-        type:'start',source,sequence:token,assets:{indexURL:indexURL.href,tkSource}
+        type:'start',source,sequence:token,assets:{indexURL:indexURL.href,tkSource,packages}
       },'*',[channel.port2]);
     }catch(error){
       if(sequence===token)fail(error?.message||'Не вдалося підготувати Python.');
@@ -95,7 +99,7 @@ function createTransport(onMessage) {
   };
 }
 
-export function createRunner(onMessage) {
+export function createRunner(onMessage,packages=[]) {
   if(!transport){
     transport=createTransport(message=>{
       if(['ready','loading','error'].includes(message.type))latest=message;
@@ -104,19 +108,24 @@ export function createRunner(onMessage) {
     window.addEventListener('pageshow',event=>{
       if(event.persisted){
         latest=undefined;
-        if(attached)transport.start();
+        if(attached)transport.start(attached.packages);
       }
     });
   }
-  const binding={receive:onMessage};
+  const binding={receive:onMessage,packages:normalizePackages(packages)};
   attached=binding;
   return {
     start(){
       if(attached!==binding)return;
-      if(latest?.type==='ready'||latest?.type==='loading')onMessage(latest);
-      else transport.start();
+      const samePackages=binding.packages.join(',')===configuredPackages.join(',');
+      if(samePackages&&(latest?.type==='ready'||latest?.type==='loading'))onMessage(latest);
+      else transport.start(binding.packages);
     },
-    restart(){if(attached===binding)transport.start();},
+    restart(packages=binding.packages){
+      if(attached!==binding)return;
+      binding.packages=normalizePackages(packages);
+      transport.start(binding.packages);
+    },
     send(message){if(attached===binding)transport.send(message);},
     dispose(keepReady=false){
       if(attached!==binding)return;

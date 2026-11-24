@@ -205,7 +205,7 @@
   async function initialize(assets, port) {
     send = port.postMessage.bind(port);
     try {
-      const {indexURL,tkSource} = assets || {};
+      const {indexURL,tkSource,packages} = assets || {};
       const {loadPyodide} = await import(new URL('pyodide.mjs',indexURL).href);
       pyodide = await loadPyodide({indexURL,lockFileURL:new URL('classroom-lock.json',indexURL).href,packageBaseUrl:indexURL});
       pyodide.setStdout({write:bytes=>write('stdout',bytes)});
@@ -279,14 +279,22 @@ _reset_tk = _tk._reset
         globals.destroy();
       }
       interactiveInput = await pyodide.runPythonAsync('from pyodide.ffi import can_run_sync; can_run_sync()');
-      send({type:'status',message:'Готуємо локальні бібліотеки…'});
-      const bundled = packageNames.filter(name=>Object.hasOwn(pyodide.lockfile.packages,name));
-      const results = await Promise.allSettled(bundled.map(name=>pyodide.loadPackage(name,{messageCallback:()=>{},errorCallback:()=>{}})));
-      available = bundled.filter((_,i)=>results[i].status==='fulfilled');
+      const requested = packageNames.filter(name=>Array.isArray(packages)&&packages.includes(name)
+        && Object.hasOwn(pyodide.lockfile.packages,name));
+      const isLoaded = name=>Object.hasOwn(pyodide.loadedPackages,pyodide.lockfile.packages[name]?.name??name);
+      for (const name of requested) {
+        if (isLoaded(name)) continue;
+        send({type:'status',message:'Підключаємо бібліотеку '+name+'…'});
+        try {
+          await pyodide.loadPackage(name,{messageCallback:()=>{},errorCallback:()=>{}});
+        } catch { /* Keep the base interpreter usable; report missing packages below. */ }
+      }
+      available = packageNames.filter(isLoaded);
       finishOutput();
       port.addEventListener('message',receive);
       port.start();
-      send({type:'ready',version:pyodide.runPython('import sys; sys.version.split()[0]'),interactiveInput,packages:available});
+      send({type:'ready',version:pyodide.runPython('import sys; sys.version.split()[0]'),interactiveInput,packages:available,
+        failedPackages:requested.filter(name=>!available.includes(name))});
     } catch (error) {
       send({type:'error',message:cleanError(error),fatal:true});
     }

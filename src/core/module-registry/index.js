@@ -41,7 +41,7 @@ Object.assign(modules.find(module=>module.id==='raster'),{
 Object.assign(modules.find(module=>module.id==='python'),{
   status:'Доступно',entry:()=>import('../../modules/python/index.js'),supportedFormats:['PY','PYTHON.JSON'],
   dependencies:['Pyodide 0.29.2 (MPL-2.0)'],
-  offlineResources:['src/modules/python/index.js','src/modules/python/worker.js','src/modules/python/runner.js','src/modules/python/project.js','src/modules/python/guide.js','src/modules/python/tkinter.py','src/modules/python/tk-view.js','src/styles/python.css','src/styles/python-tk.css','src/vendor/pyodide/'],
+  offlineResources:['src/modules/python/index.js','src/modules/python/worker.js','src/modules/python/runner.js','src/modules/python/libraries.js','src/modules/python/project.js','src/modules/python/guide.js','src/modules/python/tkinter.py','src/modules/python/tk-view.js','src/styles/python.css','src/styles/python-tk.css','src/vendor/pyodide/'],
 });
 Object.assign(modules.find(module=>module.id==='word'),{
   status:'Частково доступно',entry:()=>import('../../modules/word/index.js'),supportedFormats:['DOCX','TXT','WORD.JSON'],

@@ -264,19 +264,21 @@ function paintTransform(ctx,contents,box,dx,dy,angle,scaleX,scaleY) {
 const toolGroups=[
   {title:'Малювання',tools:[
     ['brush','●','Пензель'],['pencil','✎','Олівець'],['eraser','▱','Гумка'],
+    ['bucket','◩','Заливка'],['gradient','▨','Градієнт'],['eyedropper','⌾','Піпетка']
+  ]},
+  {title:'Фігури',tools:[
     ['line','╱','Пряма'],['rect','▭','Прямокутник'],['ellipse','○','Еліпс'],
-    ['polygon','⬠','Багатокутник'],['polyline','⌁','Ламана'],['bucket','◩','Заповнити область'],
-    ['gradient','▨','Градієнт'],['eyedropper','⌾','Вибрати колір']
+    ['polygon','⬠','Багатокутник'],['polyline','⌁','Ламана']
   ]},
   {title:'Виділення',tools:[
-    ['select-rect','⬚','Прямокутне'],['select-ellipse','◌','Еліптичне'],['select-lasso','✿','Довільне'],
-    ['select-wand','✦','Неперервне'],['select-color','◈','Подібний колір']
+    ['select-rect','⬚','Прямокутне'],['select-ellipse','◌','Еліптичне'],['select-lasso','✿','Ласо'],
+    ['select-wand','✦','Чарівна паличка'],['select-color','◈','За кольором']
   ]},
   {title:'Зміни',tools:[
     ['move','✥','Пересунути'],['transform','⟲','Перетворити'],['crop','⌗','Обрізати'],['hand','✋','Рука']
   ]}
 ];
-const shortcuts={b:'brush',e:'eraser',i:'eyedropper',g:'gradient',v:'move',h:'hand'};
+const shortcuts={b:'brush',p:'pencil',e:'eraser',i:'eyedropper',g:'gradient',v:'move',h:'hand',r:'rect',o:'ellipse',m:'select-rect',l:'select-lasso',c:'crop'};
 
 const isBrush=tool=>['brush','pencil','eraser'].includes(tool);
 const isShape=tool=>['line','rect','ellipse','polygon','polyline'].includes(tool);
@@ -284,16 +286,20 @@ const isPath=tool=>['polyline','polygon'].includes(tool);
 
 export function mount(root,{filesystem:fs,notify,fileId,rememberWork,resume}){
   let doc=documentFor(),record,active=doc.layers.length-1,zoom=1,tool='brush',group=0;
-  let displayedGroup=-1;
+  let displayedGroup=-1,panelTab='style',autoFit=true;
   let selection=null,selectionClip=null,selectionOutline=null,path=[],gesture=null;
   let undo=[],redo=[],busy=false,disposed=false,frame,resizeFrame,loading=Promise.resolve();
   const pngCache=new WeakMap();
   const settings={foreground:'#27354b',background:'#ffffff',size:7,opacity:1,brush:'round',outline:'foreground',fill:'none',
     shapeW:0,shapeH:0,mode:'replace',tolerance:0,gradientType:'linear'};
   const lastToolByGroup=toolGroups.map(item=>item.tools[0][0]);
-  const host=el('section',{className:'raster-editor','aria-label':'Растровий редактор'});
+  const host=el('section',{className:'raster-editor raster-studio','aria-label':'Растровий редактор'});
   const name=el('input',{className:'raster-name',value:'Мій малюнок','aria-label':'Назва малюнка',maxlength:145});
   const status=el('p',{className:'raster-status','aria-live':'polite'},'Автозбереження на пристрої');
+  const documentInfo=el('span',{className:'raster-document-info'});
+  const toolLabel=el('p',{className:'raster-tool-label'});
+  const selectionInfo=el('p',{className:'raster-hint','aria-live':'polite'});
+  const panelBodies=new Map(),panelButtons=[];
   const zoomLabel=el('output',{'aria-label':'Масштаб'},'100%');
   const stage=el('div',{className:'raster-stage'});
   const canvas=el('canvas',{tabindex:0,role:'img','aria-label':'Полотно растрового малюнка'});
@@ -303,7 +309,6 @@ export function mount(root,{filesystem:fs,notify,fileId,rememberWork,resume}){
   const toolPanel=el('div',{className:'raster-tool-panel'});
   const modeBar=el('div',{className:'raster-tool-modes',role:'group','aria-label':'Групи інструментів'});
   const tools=el('div',{className:'raster-tools',role:'toolbar','aria-label':'Інструменти малювання'});
-  const settingsPanel=el('details',{className:'raster-options'},el('summary',{},'Параметри'));
   const getPosition=()=>({zoom,active,top:viewport.scrollTop,left:viewport.scrollLeft});
   const current=()=>doc.layers[active];
   stage.append(canvas,guide);
@@ -363,11 +368,14 @@ export function mount(root,{filesystem:fs,notify,fileId,rememberWork,resume}){
   }
 
   function setSelection(mask){
-    selection=mask;selectionClip=selectionOutline=null;
+    const box=mask?maskBounds(mask,doc.width,doc.height):null;
+    selection=box?mask:null;selectionClip=selectionOutline=null;
     const selectionActive=Boolean(selection);
     clearSelection.disabled=!selectionActive;
     cropSelection.disabled=!selectionActive;
     eraseSelection.disabled=!selectionActive;
+    selectionInfo.textContent=box?'Виділено '+box.w+' × '+box.h+' пкс':'Виділення немає. Окресли область на полотні або виділи все.';
+    invertSelection.disabled=!selectionActive;
     schedulePaint();
   }
 
@@ -536,16 +544,25 @@ export function mount(root,{filesystem:fs,notify,fileId,rememberWork,resume}){
   }
 
   function fit(){
-    const {clientWidth,clientHeight}=viewport;
-    if(clientWidth>0&&clientHeight>0)setZoom(Math.min(1,(clientWidth-20)/doc.width,(clientHeight-20)/doc.height));
+    const style=getComputedStyle(viewport);
+    const width=viewport.clientWidth-parseFloat(style.paddingLeft)-parseFloat(style.paddingRight);
+    const height=viewport.clientHeight-parseFloat(style.paddingTop)-parseFloat(style.paddingBottom);
+    autoFit=true;
+    if(width>0&&height>0)setZoom(Math.min(1,width/doc.width,height/doc.height));
+  }
+
+  function changeZoom(value){
+    cancelGesture();autoFit=false;setZoom(value);
   }
 
   function redraw(){
     for(const item of [canvas,guide])if(item.width!==doc.width||item.height!==doc.height){
       item.width=doc.width;item.height=doc.height;
     }
-    setZoom(zoom);
+    if(autoFit)fit();else setZoom(zoom);
     undoButton.disabled=!undo.length;redoButton.disabled=!redo.length;
+    documentInfo.textContent=doc.width+' × '+doc.height+' пкс · '+doc.dpi+' dpi';
+    pageWidth.value=doc.width;pageHeight.value=doc.height;pageDpi.value=doc.dpi;
     renderLayers();schedulePaint();
   }
 
@@ -587,6 +604,7 @@ export function mount(root,{filesystem:fs,notify,fileId,rememberWork,resume}){
     finish.hidden=cancelPath.hidden=!isPath(tool);
     finish.disabled=path.length<(tool==='polygon'?3:2);
     cancelPath.disabled=!path.length;
+    pathCommands.hidden=!isPath(tool)||!path.length;
   }
 
   function finishPath(){
@@ -603,6 +621,7 @@ export function mount(root,{filesystem:fs,notify,fileId,rememberWork,resume}){
       notify('Покажи активний шар, щоб редагувати його.');return;
     }
     event.preventDefault();
+    canvas.focus({preventScroll:true});
     const point=position(event);
     if(tool==='eyedropper'||tool==='bucket'||tool==='select-wand'||tool==='select-color'||isPath(tool)){
       applyTap(tool,point);return;
@@ -684,7 +703,9 @@ export function mount(root,{filesystem:fs,notify,fileId,rememberWork,resume}){
   canvas.addEventListener('dblclick',finishPath);
 
   function toolButton(key,icon,label){
-    return el('button',{type:'button','data-raster-tool':key,'aria-pressed':String(tool===key),onClick:()=>chooseTool(key)},
+    const shortcut=Object.keys(shortcuts).find(letter=>shortcuts[letter]===key)?.toUpperCase();
+    return el('button',{type:'button','data-raster-tool':key,'aria-pressed':String(tool===key),
+      title:shortcut?label+' ('+shortcut+')':label,'aria-keyshortcuts':shortcut,onClick:()=>chooseTool(key)},
       el('span',{className:'raster-tool-icon','aria-hidden':'true'},icon),el('span',{},label));
   }
 
@@ -693,11 +714,15 @@ export function mount(root,{filesystem:fs,notify,fileId,rememberWork,resume}){
     lastToolByGroup[group]=key;
     canvas.style.cursor=key==='hand'?'grab':key==='move'||key==='transform'?'move':'crosshair';
     viewport.classList.toggle('is-pan',key==='hand');
-    if(key==='transform')settingsPanel.open=true;
+    if(key==='transform')openPanel('style');
     for(const panel of toolPanel.querySelectorAll('[data-tools]')){
       panel.hidden=!panel.dataset.tools.split(' ').some(flag=>
         flag===key||flag==='brush'&&isBrush(key)||flag==='shape'&&isShape(key)||flag==='selection'&&key.startsWith('select-'));
     }
+    const [,mark,label]=toolGroups.flatMap(item=>item.tools).find(([id])=>id===key);
+    toolLabel.textContent=label;
+    toolContext.replaceChildren(el('b',{'aria-hidden':'true'},mark),el('span',{},label));
+    toolContext.setAttribute('aria-label','Параметри: '+label);
     drawTools();updatePathCommands();schedulePaint();
   }
 
@@ -710,8 +735,8 @@ export function mount(root,{filesystem:fs,notify,fileId,rememberWork,resume}){
     for(const [i,control] of [...modeBar.children].entries())control.setAttribute('aria-pressed',String(i===group));
   }
 
-  const undoButton=button('↶',()=>travel(undo,redo),{'aria-label':'Скасувати',title:'Скасувати'});
-  const redoButton=button('↷',()=>travel(redo,undo),{'aria-label':'Повторити',title:'Повторити'});
+  const undoButton=button('↶',()=>travel(undo,redo),{'aria-label':'Скасувати',title:'Скасувати (Ctrl+Z)'});
+  const redoButton=button('↷',()=>travel(redo,undo),{'aria-label':'Повторити',title:'Повторити (Ctrl+Shift+Z)'});
   const finish=button('✓ Завершити',finishPath,{className:'primary'});
   const cancelPath=button('Скасувати контур',()=>{path=[];updatePathCommands();schedulePaint();});
   const clearSelection=button('Зняти виділення',()=>setSelection(null),{disabled:true});
@@ -721,25 +746,37 @@ export function mount(root,{filesystem:fs,notify,fileId,rememberWork,resume}){
     const clip=selectionSurface();
     mutate(()=>{current().canvas=clippedSurface(current().canvas,clip,true);});
   },{disabled:true});
+  const invertSelection=button('Інвертувати виділення',()=>{
+    if(selection)setSelection(selection.map(value=>value?0:1));
+  },{disabled:true});
   const foreground=el('input',{type:'color',value:settings.foreground,'aria-label':'Передній колір',
-    onInput:event=>{settings.foreground=event.target.value;}});
+    onInput:event=>{settings.foreground=event.target.value;syncColors();}});
   const background=el('input',{type:'color',value:settings.background,'aria-label':'Колір тла інструмента',
     onInput:event=>{settings.background=event.target.value;}});
-  const syncColors=()=>{foreground.value=settings.foreground;background.value=settings.background;};
+  const syncColors=()=>{
+    foreground.value=settings.foreground;background.value=settings.background;
+    for(const control of palette.children)control.setAttribute('aria-pressed',String(control.dataset.color===settings.foreground));
+  };
   const size=el('input',{type:'number',min:1,max:250,value:settings.size,'aria-label':'Розмір пензля й контуру',
     onChange:event=>{settings.size=Math.round(clamp(Number(event.target.value)||7,1,250));event.target.value=settings.size;}});
-  const mainTools=el('div',{className:'raster-quick'},
-    el('div',{className:'raster-colors','aria-label':'Кольори'},
-      el('label',{title:'Передній колір'},foreground),
+  const colorControls=el('div',{className:'raster-color-controls'},
+    el('div',{className:'raster-fields raster-color-fields'},
+      el('label',{},'Основний колір',foreground),el('label',{},'Другий колір',background),
+      el('label',{className:'raster-size'},'Товщина, пкс',size)),
+    el('div',{className:'raster-color-actions'},
       button('⇄',()=>{[settings.foreground,settings.background]=[settings.background,settings.foreground];syncColors();},
         {'aria-label':'Поміняти кольори місцями',title:'Поміняти кольори місцями'}),
-      el('label',{title:'Колір тла'},background),
-      button('◧',()=>{settings.foreground='#000000';settings.background='#ffffff';syncColors();},
-        {'aria-label':'Чорний і білий',title:'Чорний і білий'})),
-    el('label',{className:'raster-size',title:'Товщина'},'Товщина',size),
-    el('div',{className:'raster-zoom'},undoButton,redoButton,button('−',()=>setZoom(zoom/1.25),{'aria-label':'Зменшити масштаб'}),
-      zoomLabel,button('+',()=>setZoom(zoom*1.25),{'aria-label':'Збільшити масштаб'}),
-      button('Умістити',fit)));
+      button('Чорний / білий',()=>{settings.foreground='#000000';settings.background='#ffffff';syncColors();})));
+  const palette=el('div',{className:'raster-palette','aria-label':'Палітра кольорів'},
+    ...['#000000','#ffffff','#ef4444','#f97316','#facc15','#22c55e','#14b8a6','#0ea5e9','#3b82f6','#a855f7','#ec4899','#78350f']
+      .map(color=>button('',()=>{settings.foreground=color;syncColors();},{className:'raster-swatch',style:'--swatch:'+color,
+        'data-color':color,'aria-label':'Колір '+color,title:color,'aria-pressed':'false'})));
+  const toolContext=button('',()=>openPanel('style'),{className:'raster-context-button',title:'Параметри інструмента'});
+  const mainTools=el('div',{className:'raster-quick'},
+    el('div',{className:'raster-zoom'},undoButton,redoButton,button('−',()=>changeZoom(zoom/1.25),{'aria-label':'Зменшити масштаб'}),
+      zoomLabel,button('+',()=>changeZoom(zoom*1.25),{'aria-label':'Збільшити масштаб'}),
+      button('⊡',fit,{'aria-label':'Умістити полотно',title:'Умістити полотно'}),
+      button('1:1',()=>changeZoom(1),{'aria-label':'Масштаб 100%',title:'Масштаб 100%'})),toolContext);
 
   function enumField(key,label,values){
     const select=el('select',{'aria-label':label,onChange:event=>{settings[key]=event.target.value;}},
@@ -793,7 +830,8 @@ export function mount(root,{filesystem:fs,notify,fileId,rememberWork,resume}){
       button('Застосувати',submitTransform,{className:'primary'})),
     params('hand',el('p',{className:'muted'},'Перетягуй полотно.')),
     params('crop',el('p',{className:'muted'},'Окресли нові межі полотна.')),
-    params('eyedropper',el('p',{className:'muted'},'Торкнися кольору на полотні.'))
+    params('eyedropper',el('p',{className:'muted'},'Торкнися кольору на полотні.')),
+    params('polygon polyline',el('p',{},'Позначай вершини на полотні. Натисни «Завершити» або Enter, щоб намалювати контур.'))
   );
   for(const [i,item] of toolGroups.entries()){
     modeBar.append(button(item.title,()=>{
@@ -801,7 +839,6 @@ export function mount(root,{filesystem:fs,notify,fileId,rememberWork,resume}){
       group=i;chooseTool(lastToolByGroup[i]);
     },{'aria-pressed':String(i===group)}));
   }
-  settingsPanel.append(toolPanel);
 
   function switchLayer(index){
     if(index===active)return;
@@ -837,19 +874,26 @@ export function mount(root,{filesystem:fs,notify,fileId,rememberWork,resume}){
     onChange:event=>mutate(()=>{current().name=event.target.value.trim()||'Шар';})});
   const layerOpacity=el('input',{type:'range',min:0,max:100,'aria-label':'Непрозорість шару',
     onChange:event=>mutate(()=>{current().opacity=Number(event.target.value)/100;})});
-  const layersTitle=el('summary',{},'Шари');
-  const layersPanel=el('details',{className:'raster-layers',open:matchMedia('(min-width:940px)').matches},layersTitle,
+  const layersTitle=el('h3',{className:'raster-layers-title'},'Шари');
+  const layersPanel=el('div',{className:'raster-layers'},layersTitle,
     el('div',{className:'raster-layer-actions'},addLayerButton,layerDown,layerUp,deleteLayer),
     layerList,el('div',{className:'raster-fields raster-layer-fields'},
       el('label',{},'Назва шару',layerName),el('label',{},'Непрозорість',layerOpacity)));
 
   function renderLayers(){
     layersTitle.textContent='Шари · '+doc.layers.length;
-    layerList.replaceChildren(...doc.layers.map((item,index)=>el('div',{className:'raster-layer-row'},
-      button(item.name,()=>switchLayer(index),{className:'raster-layer-select','aria-pressed':String(active===index)}),
+    layerList.replaceChildren(...doc.layers.map((item,index)=>{
+      const thumb=surface(48,36);
+      thumb.className='raster-layer-thumb';thumb.setAttribute('aria-hidden','true');
+      const ratio=Math.min(48/doc.width,36/doc.height);
+      thumb.getContext('2d').drawImage(item.canvas,(48-doc.width*ratio)/2,(36-doc.height*ratio)/2,doc.width*ratio,doc.height*ratio);
+      return el('div',{className:'raster-layer-row'+(active===index?' is-selected':'')},
+      button([thumb,el('span',{className:'raster-layer-name'},item.name)],()=>switchLayer(index),
+        {className:'raster-layer-select','aria-pressed':String(active===index),'aria-label':'Вибрати шар '+item.name}),
       button(item.visible?'◉':'○',()=>mutate(()=>{doc.layers[index].visible=!doc.layers[index].visible;}),
         {'aria-label':(item.visible?'Сховати ':'Показати ')+item.name,title:item.visible?'Сховати':'Показати'})
-    )).reverse());
+      );
+    }).reverse());
     addLayerButton.disabled=doc.layers.length>=maxLayers||doc.width*doc.height*(doc.layers.length+1)>pixelBudget;
     layerDown.disabled=active===0;layerUp.disabled=active===doc.layers.length-1;deleteLayer.disabled=doc.layers.length<2;
     layerName.value=current().name;layerOpacity.value=Math.round(current().opacity*100);
@@ -862,7 +906,7 @@ export function mount(root,{filesystem:fs,notify,fileId,rememberWork,resume}){
     active=Number.isInteger(savedPosition?.active)?clamp(savedPosition.active,0,doc.layers.length-1):doc.layers.length-1;
     undo=[];redo=[];path=[];
     setSelection(null);updatePathCommands();redraw();
-    if(Number.isFinite(savedPosition?.zoom))setZoom(savedPosition.zoom);else fit();
+    if(Number.isFinite(savedPosition?.zoom)){autoFit=false;setZoom(savedPosition.zoom);}else fit();
     if(Number.isFinite(savedPosition?.top))viewport.scrollTop=savedPosition.top;
     if(Number.isFinite(savedPosition?.left))viewport.scrollLeft=savedPosition.left;
     if(record){
@@ -928,10 +972,10 @@ export function mount(root,{filesystem:fs,notify,fileId,rememberWork,resume}){
         });
       });
     }});
-  const save=button('Зберегти',()=>run(async()=>{
+  const save=button('✓',()=>run(async()=>{
     if(!record&&!autosave.dirty())autosave.change();
     await autosave.flush();
-  },false),{className:'primary'});
+  },false),{className:'primary','aria-label':'Зберегти',title:'Зберегти (Ctrl+S)'});
   name.addEventListener('input',()=>autosave.change());
   const formats=[['png','PNG','png'],['jpeg','JPEG','jpg'],['bmp','BMP','bmp'],['gif','GIF','gif'],['tiff','TIFF','tif']];
   const exportFormat=el('select',{'aria-label':'Формат зображення'},...formats.map(([value,label])=>option(value,label)));
@@ -943,31 +987,107 @@ export function mount(root,{filesystem:fs,notify,fileId,rememberWork,resume}){
   },false));
   const assignment=guideFor(fileId);
   const vectorLink=el('a',{href:'#editor/vector',className:'button raster-vector-link'},'Вектор');
+  mainTools.append(vectorLink);
   const fileMenu=el('details',{className:'raster-file-menu'},el('summary',{},'Файл'),
     el('div',{className:'raster-file-actions'},
       button('Новий малюнок',newDocument),button('Відкрити…',()=>imageInput.click()),
       button('Зображення як шар',()=>layerInput.click()),
       button('Завантажити проєкт',()=>run(async()=>download(await projectBlob(doc,pngCache),projectName()+projectExtension),false)),
-      assignment?vectorLink:null,
+      el('a',{href:'#editor/vector',className:'button'},'Векторний редактор'),
       el('div',{className:'raster-file-export'},exportFormat,rasterExport)));
-  fileMenu.addEventListener('click',event=>{if(event.target.closest('button'))fileMenu.open=false;});
+  fileMenu.addEventListener('click',event=>{if(event.target.closest('button,a'))fileMenu.open=false;});
 
   const top=el('header',{className:'raster-header'},
     el('a',{href:'#catalog',className:'button','aria-label':'До каталогу'},'←'),
-    name,save,fileMenu,assignment??vectorLink,imageInput,layerInput);
+    name,save,fileMenu,assignment,imageInput,layerInput);
   const selectAll=button('Виділити все',()=>setSelection(new Uint8Array(doc.width*doc.height).fill(1)));
-  const selectionCommands=el('div',{className:'raster-selection-actions'},selectAll,clearSelection,eraseSelection,cropSelection);
-  const pathCommands=el('div',{className:'raster-path-actions'},finish,cancelPath);
-  const workspace=el('div',{className:'raster-workspace'},viewport,layersPanel);
-  host.append(top,modeBar,tools,mainTools,settingsPanel,pathCommands,workspace,selectionCommands,status);
+  const selectionCommands=el('div',{className:'raster-selection-actions'},selectAll,clearSelection,invertSelection,eraseSelection,cropSelection,
+    button('Пересунути виділене',()=>activateTool('move')),button('Розмір і поворот…',()=>{activateTool('transform');openPanel('style');}));
+  const pageWidth=el('input',{type:'number',min:1,max:maxSide,'aria-label':'Ширина полотна, пкс'});
+  const pageHeight=el('input',{type:'number',min:1,max:maxSide,'aria-label':'Висота полотна, пкс'});
+  const pageDpi=el('input',{type:'number',min:1,max:1200,'aria-label':'Роздільність полотна, dpi'});
+  const resizeMode=el('select',{'aria-label':'Зміна розміру'},option('canvas','Межі полотна'),option('scale','Масштабувати зображення'));
+  function applyPageSize(){
+    const width=Number(pageWidth.value),height=Number(pageHeight.value),dpi=Number(pageDpi.value);
+    try{
+      checkDimensions(width,height,doc.layers.length);
+      if(!Number.isInteger(dpi)||dpi<1||dpi>1200)throw new Error('Роздільність має бути від 1 до 1200 dpi.');
+    }catch(error){notify(error.message);return;}
+    if(width===doc.width&&height===doc.height&&dpi===doc.dpi)return;
+    cancelGesture();path=[];
+    mutate(()=>{
+      if(width!==doc.width||height!==doc.height){
+        for(const item of doc.layers){
+          const output=surface(width,height),ctx=output.getContext('2d');
+          if(resizeMode.value==='scale')ctx.drawImage(item.canvas,0,0,width,height);
+          else ctx.drawImage(item.canvas,0,0);
+          item.canvas=output;
+        }
+      }
+      doc.width=width;doc.height=height;doc.dpi=dpi;setSelection(null);updatePathCommands();
+    });
+    fit();
+  }
+  const pagePanel=el('div',{},el('div',{className:'raster-fields'},
+    el('label',{},'Ширина, пкс',pageWidth),el('label',{},'Висота, пкс',pageHeight),
+    el('label',{},'Роздільність, dpi',pageDpi),el('label',{},'Зміна розміру',resizeMode)),
+    el('p',{className:'raster-hint'},'«Межі полотна» залишає малюнок у лівому верхньому куті та обрізає зайве. «Масштабувати зображення» змінює розмір усього малюнка.'),
+    button('Застосувати розмір',applyPageSize,{className:'primary'}),
+    el('p',{className:'raster-hint'},'До 2400 пкс на сторону. Зміни можна скасувати кнопкою ↶.'),
+    button('Новий малюнок…',newDocument));
+  panelBodies.set('style',el('div',{},colorControls,palette,toolPanel));
+  panelBodies.set('actions',el('div',{},selectionInfo,selectionCommands));
+  panelBodies.set('layers',layersPanel);
+  panelBodies.set('page',pagePanel);
+  const panelNav=el('nav',{className:'raster-panel-tabs','aria-label':'Розділи налаштувань'});
+  const mobileNav=el('nav',{className:'raster-mobile-tabs','aria-label':'Панелі растрового редактора'});
+  function openPanel(id,open=true){
+    panelTab=id;host.classList.toggle('raster-panel-open',open);
+    for(const [key,body] of panelBodies)body.hidden=key!==id;
+    for(const {key,control,mobile} of panelButtons){
+      control.setAttribute('aria-pressed',String(key===id&&(!mobile||open)));
+      if(mobile)control.setAttribute('aria-expanded',String(key===id&&open));
+    }
+  }
+  function closePanel(focus=false){openPanel(panelTab,false);if(focus)canvas.focus({preventScroll:true});}
+  function activateTool(key){
+    group=toolGroups.findIndex(item=>item.tools.some(([id])=>id===key));
+    chooseTool(key);
+  }
+  for(const [id,label] of [['style','Параметри'],['actions','Дії'],['layers','Шари'],['page','Полотно']]){
+    const body=panelBodies.get(id);
+    body.classList.add('raster-panel-body');body.id='raster-panel-'+id;body.setAttribute('aria-label',label);
+    for(const [target,mobile] of [[panelNav,false],[mobileNav,true]]){
+      const control=button(label,()=>openPanel(id),{'data-raster-panel':id,'aria-controls':body.id});
+      panelButtons.push({key:id,control,mobile});target.append(control);
+    }
+  }
+  const inspector=el('aside',{className:'raster-inspector','aria-label':'Налаштування малюнка'},
+    el('header',{className:'raster-panel-header'},toolLabel,button('×',()=>closePanel(true),
+      {className:'raster-panel-close','aria-label':'Закрити панель',title:'Закрити панель'})),panelNav,...panelBodies.values());
+  const pathCommands=el('div',{className:'raster-path-actions',hidden:true},finish,cancelPath);
+  const workspace=el('div',{className:'raster-workspace'},mainTools,viewport,pathCommands);
+  host.append(top,el('div',{className:'raster-tool-shelf'},modeBar,tools),
+    el('div',{className:'raster-layout'},workspace,inspector),mobileNav,
+    el('footer',{className:'raster-status-bar'},documentInfo,status));
   root.append(host);document.body.classList.add('raster-focus-mode');
-  const removeWheelZoom=bindWheelZoom(viewport,stage,{current:()=>zoom,zoom:setZoom,blocked:()=>busy||Boolean(gesture)});
+  const removeWheelZoom=bindWheelZoom(viewport,stage,{current:()=>zoom,zoom:changeZoom,blocked:()=>busy||Boolean(gesture)});
+  const viewportObserver=new ResizeObserver(()=>{
+    if(disposed||!autoFit)return;
+    cancelAnimationFrame(resizeFrame);
+    resizeFrame=requestAnimationFrame(()=>{if(!disposed&&autoFit)fit();});
+  });
+  viewportObserver.observe(viewport);
   const setHeight=()=>host.style.setProperty('--raster-height',`${window.visualViewport?.height||innerHeight}px`);
   setHeight();window.addEventListener('resize',setHeight);window.visualViewport?.addEventListener('resize',setHeight);
   const unload=event=>{if(busy||autosave.dirty()){event.preventDefault();event.returnValue='';}};
   window.addEventListener('beforeunload',unload);
   host.addEventListener('keydown',event=>{
     if(busy)return;
+    if(event.target.closest('dialog'))return;
+    if(event.key==='Escape'&&!gesture&&!path.length&&host.classList.contains('raster-panel-open')){
+      event.preventDefault();closePanel(true);return;
+    }
     const command=event.ctrlKey||event.metaKey,key=event.key.toLowerCase();
     if(command&&key==='s'){event.preventDefault();save.click();return;}
     if(event.target.closest('input,select,textarea'))return;
@@ -979,6 +1099,9 @@ export function mount(root,{filesystem:fs,notify,fileId,rememberWork,resume}){
     if(command&&key==='z'){event.preventDefault();event.shiftKey?travel(redo,undo):travel(undo,redo);}
     if(command&&key==='y'){event.preventDefault();travel(redo,undo);}
     if(command&&key==='a'){event.preventDefault();selectAll.click();}
+    if(command&&(key==='+'||key==='=')){event.preventDefault();changeZoom(zoom*1.25);}
+    if(command&&key==='-'){event.preventDefault();changeZoom(zoom/1.25);}
+    if(command&&key==='0'){event.preventDefault();fit();}
     if(event.key==='Delete'&&selection){event.preventDefault();eraseSelection.click();}
     if(event.key==='Escape'){
       if(gesture)cancelGesture();
@@ -989,7 +1112,7 @@ export function mount(root,{filesystem:fs,notify,fileId,rememberWork,resume}){
       event.preventDefault();finishPath();
     }
   });
-  chooseTool(tool);redraw();
+  openPanel('style',false);syncColors();setSelection(null);chooseTool(tool);redraw();
   resizeFrame=requestAnimationFrame(()=>{if(!record)fit();});
   if(fileId)loading=run(async()=>{
     const file=await fs.getFile(fileId);
@@ -1007,7 +1130,7 @@ export function mount(root,{filesystem:fs,notify,fileId,rememberWork,resume}){
       catch{return confirm('Малюнок не збережено. Вийти без останніх змін?');}
     },
     dispose(){
-      disposed=true;removeWheelZoom();cancelGesture();cancelAnimationFrame(frame);cancelAnimationFrame(resizeFrame);autosave.dispose();
+      disposed=true;viewportObserver.disconnect();removeWheelZoom();cancelGesture();cancelAnimationFrame(frame);cancelAnimationFrame(resizeFrame);autosave.dispose();
       document.body.classList.remove('raster-focus-mode');
       window.removeEventListener('beforeunload',unload);window.removeEventListener('resize',setHeight);
       window.visualViewport?.removeEventListener('resize',setHeight);
